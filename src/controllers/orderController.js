@@ -92,9 +92,9 @@ const addProductToOrder = async (req, res) => {
         for (const product of products) {
             const { product_id, quantity } = product;
 
-            // Get the price of the product from the Products table
+            // Get the price and stock of the product from the Products table
             const [productResult] = await connection.query(
-                "SELECT price FROM products WHERE product_id = ?",
+                "SELECT price, stock_quantity FROM products WHERE product_id = ?",
                 [product_id]
             );
 
@@ -103,11 +103,22 @@ const addProductToOrder = async (req, res) => {
                 return res.status(404).json({ error: `Product with id ${product_id} not found` });
             }
 
-            const unit_price_at_time = productResult[0].price;
+            const { price: unit_price_at_time, stock_quantity } = productResult[0];
+
+            if (stock_quantity < quantity) {
+                await connection.rollback();
+                return res.status(400).json({ error: `Insufficient stock_quantity for product with id ${product_id}` });
+            }
 
             await connection.query(
                 "INSERT INTO OrderItems (order_id, product_id, quantity, unit_price_at_time) VALUES (?, ?, ?, ?)",
                 [orderId, product_id, quantity, unit_price_at_time]
+            );
+
+            // Reduce the ordered quantity from the stock
+            await connection.query(
+                "UPDATE products SET stock_quantity = stock_quantity - ? WHERE product_id = ?",
+                [quantity, product_id]
             );
         }
 
