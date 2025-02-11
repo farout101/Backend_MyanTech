@@ -11,7 +11,21 @@ const getAllOrders = async (req, res) => {
         const limit = parseInt(req.query.limit) || 100;
         const offset = parseInt(req.query.offset) || 0;
 
-        const [orders] = await pool.query("SELECT * FROM Orders ORDER BY order_date DESC LIMIT ? OFFSET ?", [limit, offset]);
+        const [orders] = await pool.query(`
+            SELECT 
+                O.order_date,
+                I.invoice_id,
+                C.name AS customer_name,
+                O.status AS status,
+                I.status AS finance_status,
+                O.order_id,
+                I.total_amount AS amount
+            FROM Orders O
+            LEFT JOIN Invoices I ON O.order_id = I.order_id
+            JOIN Customers C ON O.customer_id = C.customer_id
+            ORDER BY O.order_date DESC
+            LIMIT ? OFFSET ?
+        `, [limit, offset]);
 
         res.json(orders);
     } catch (error) {
@@ -23,9 +37,37 @@ const getAllOrders = async (req, res) => {
 // Get a single order
 const getOrder = async (req, res) => {
     try {
-        const [order] = await pool.query("SELECT * FROM Orders WHERE order_id = ?", [req.params.id]);
+        const [order] = await pool.query(`
+            SELECT 
+                O.order_id,
+                O.order_date,
+                O.status AS order_status,
+                O.total_amount,
+                C.customer_id,
+                C.name AS customer_name,
+                OI.order_item_id,
+                OI.product_id,
+                P.name AS product_name,
+                P.category,
+                P.brand,
+                P.price AS current_price,
+                OI.unit_price_at_time AS price_at_order,
+                OI.quantity,
+                OI.status AS order_item_status,
+                R.return_id,
+                R.return_reason,
+                R.return_status,
+                R.return_date,
+                R.resolved_date
+            FROM OrderItems OI
+            JOIN Orders O ON OI.order_id = O.order_id
+            JOIN Customers C ON O.customer_id = C.customer_id
+            JOIN products P ON OI.product_id = P.product_id
+            LEFT JOIN Returns R ON OI.order_item_id = R.order_item_id
+            WHERE O.order_id = ?
+        `, [req.params.id]);
         if (order.length === 0) return res.status(404).json({ error: "Order not found" });
-        res.json(order[0]);
+        res.json(order);
     } catch (error) {
         console.error("Error fetching order:", error);
         res.status(500).json({ error: "Database query failed" });
