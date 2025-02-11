@@ -218,10 +218,77 @@ const deleteOrder = async (req, res) => {
 };
 
 
-// Add products to order
+// // Add products to order
+// const addProductToOrder = async (req, res) => {
+//     console.log("went into order controller");
+//     let { customer_id, order_date, total_amount, products } = req.body;
+
+//     if (!order_date) {
+//         order_date = new Date();
+//     }
+
+//     if (!Array.isArray(products) || products.length === 0) {
+//         return res.status(400).json({ error: "Products array is required" });
+//     }
+
+//     const connection = await pool.getConnection();
+//     try {
+//         await connection.beginTransaction();
+
+//         const [orderResult] = await connection.query(
+//             "INSERT INTO Orders (customer_id, order_date, total_amount) VALUES (?, ?, ?)",
+//             [customer_id, order_date, total_amount]
+//         );
+
+//         const orderId = orderResult.insertId;
+
+//         for (const product of products) {
+//             const { product_id, quantity } = product;
+
+//             // Get the price and stock of the product from the Products table
+//             const [productResult] = await connection.query(
+//                 "SELECT price, stock_quantity FROM products WHERE product_id = ?",
+//                 [product_id]
+//             );
+
+//             if (productResult.length === 0) {
+//                 await connection.rollback();
+//                 return res.status(404).json({ error: `Product with id ${product_id} not found` });
+//             }
+
+//             const { price: unit_price_at_time, stock_quantity } = productResult[0];
+
+//             if (stock_quantity < quantity) {
+//                 await connection.rollback();
+//                 return res.status(400).json({ error: `Insufficient stock_quantity for product with id ${product_id}` });
+//             }
+
+//             await connection.query(
+//                 "INSERT INTO OrderItems (order_id, product_id, quantity, unit_price_at_time) VALUES (?, ?, ?, ?)",
+//                 [orderId, product_id, quantity, unit_price_at_time]
+//             );
+
+//             // Reduce the ordered quantity from the stock
+//             await connection.query(
+//                 "UPDATE products SET stock_quantity = stock_quantity - ? WHERE product_id = ?",
+//                 [quantity, product_id]
+//             );
+//         }
+
+//         await connection.commit();
+//         res.json({ message: "Order and products added", order_id: orderId });
+//     } catch (error) {
+//         await connection.rollback();
+//         console.error("Error adding products to order:", error);
+//         res.status(500).json({ error: "Database transaction failed" });
+//     } finally {
+//         connection.release();
+//     }
+// };
+
 const addProductToOrder = async (req, res) => {
     console.log("went into order controller");
-    let { customer_id, order_date, total_amount, products } = req.body;
+    let { customer_id, order_date, products } = req.body;
 
     if (!order_date) {
         order_date = new Date();
@@ -235,12 +302,8 @@ const addProductToOrder = async (req, res) => {
     try {
         await connection.beginTransaction();
 
-        const [orderResult] = await connection.query(
-            "INSERT INTO Orders (customer_id, order_date, total_amount) VALUES (?, ?, ?)",
-            [customer_id, order_date, total_amount]
-        );
-
-        const orderId = orderResult.insertId;
+        // Calculate total_amount
+        let total_amount = 0;
 
         for (const product of products) {
             const { product_id, quantity } = product;
@@ -262,6 +325,26 @@ const addProductToOrder = async (req, res) => {
                 await connection.rollback();
                 return res.status(400).json({ error: `Insufficient stock_quantity for product with id ${product_id}` });
             }
+
+            total_amount += unit_price_at_time * quantity;
+        }
+
+        const [orderResult] = await connection.query(
+            "INSERT INTO Orders (customer_id, order_date, total_amount) VALUES (?, ?, ?)",
+            [customer_id, order_date, total_amount]
+        );
+
+        const orderId = orderResult.insertId;
+
+        for (const product of products) {
+            const { product_id, quantity } = product;
+
+            const [productResult] = await connection.query(
+                "SELECT price FROM products WHERE product_id = ?",
+                [product_id]
+            );
+
+            const unit_price_at_time = productResult[0].price;
 
             await connection.query(
                 "INSERT INTO OrderItems (order_id, product_id, quantity, unit_price_at_time) VALUES (?, ?, ?, ?)",
