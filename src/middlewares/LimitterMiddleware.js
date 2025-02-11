@@ -6,4 +6,13 @@ const loginLimiter = rateLimit({
     message: "Too many login attempts, please try again later"
 });
 
-module.exports = loginLimiter;
+const defaultLimiter = rateLimit({
+    windowMs: 10 * 60 * 1000, // 10 minutes
+    max: 100, // Limit each IP to 100 requests per window
+    message: "Too many requests, please try again later"
+});
+
+module.exports = {
+    loginLimiter,
+    defaultLimiter
+};
