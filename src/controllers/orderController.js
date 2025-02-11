@@ -35,6 +35,7 @@ const { checkPrivilege } = require("../helpers/jwtHelperFunctions");
 //     }
 // };
 
+//Get all order for sale view
 const getAllOrdersforSale = async (req, res) => {
     try {
         checkPrivilege(req, res, ['Admin','Warehouse', 'Sale']);
@@ -104,6 +105,7 @@ const getAllOrdersforSale = async (req, res) => {
     }
 };
 
+//Get All Orders for Warehouse View
 const getAllOrdersforWarehouse = async (req, res) => {
     try {
         checkPrivilege(req, res, ['Admin','Warehouse', 'Sale']);
@@ -145,7 +147,7 @@ const getAllOrdersforWarehouse = async (req, res) => {
     }
 };
 
-// Get a single order
+// Get Specifc order for sale details
 const getOrder = async (req, res) => {
     try {
         checkPrivilege(req, res, ['Admin','Warehouse', 'Sale']);
@@ -187,13 +189,13 @@ const getOrder = async (req, res) => {
     }
 };
 
-// Update order
+// Update order status by order_id for warehouse
 const updateOrder = async (req, res) => {
 
     //Commend out this line if you dont want to use login
 
     try {
-        checkPrivilege(req, res, ['Admin','Warehouse', 'Sale']);
+        checkPrivilege(req, res, ['Admin','Warehouse']);
 
         const { status } = req.body;
         const [result] = await pool.query(
@@ -291,6 +293,7 @@ const deleteOrder = async (req, res) => {
 //     }
 // };
 
+// Add products to order and order_items
 const addProductToOrder = async (req, res) => {
 
     checkPrivilege(req, res, ['Admin','Warehouse', 'Sale']);
