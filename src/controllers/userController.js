@@ -1,9 +1,12 @@
 const pool = require("../../config/db");
 const bcryptjs = require('bcryptjs');
+const { checkPrivilege } = require('../helpers/jwtHelperFunctions')
 
 // Get all users with pagination
 const getAllUsers = async (req, res) => {
     try {
+      checkPrivilege(req, res, ['Admin','Warehouse','Sale']);
+
         const limit = parseInt(req.query.limit) || 100;
         const offset = parseInt(req.query.offset) || 0;
 
@@ -19,6 +22,8 @@ const getAllUsers = async (req, res) => {
 // get single  user
 const getUserByName = async (req, res) => {
   try {
+    checkPrivilege(req, res, ['Admin','Warehouse','Sale']);
+
     const searchUser = req.query.name;
     const [user] = await pool.query("SELECT * FROM users WHERE name = ?", [
       searchUser,
@@ -35,6 +40,8 @@ const getUserByName = async (req, res) => {
 // create new user
 const createUser = async (req, res) => {
     try {
+      checkPrivilege(req, res, ['Admin','Warehouse','Sale']);
+
         const { name, email, password, phone_number, role_name, dept_name } = req.body;
 
         const saltRounds = 10;
@@ -54,6 +61,8 @@ const createUser = async (req, res) => {
 // Update user by ID
 const updateUserById = async (req, res) => {
   try {
+    checkPrivilege(req, res, ['Admin','Warehouse','Sale']);
+
       const { name, email, phone_number, role_name, dept_name } = req.body;
       const [result] = await pool.query(
           "UPDATE users SET name=?, email=?, phone_number=?, role_name=?, dept_name=? WHERE employee_id=?",

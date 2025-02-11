@@ -1,4 +1,5 @@
 const pool = require("../../config/db");
+const { checkPrivilege } = require('../helpers/jwtHelperFunctions')
 
 const getAllReturns = (req,res) => {
     return res.json({message : "From return route"})
@@ -9,6 +10,8 @@ const getAllReturns = (req,res) => {
 const createReturn = async (req, res) => {
     const connection = await pool.getConnection();
     try {
+        checkPrivilege(req, res, ['Admin','Warehouse','Sale']);
+
         await connection.beginTransaction();
 
         const returns = req.body; // Expecting an array of returns

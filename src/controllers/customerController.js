@@ -1,8 +1,11 @@
 const pool = require("../../config/db");
+const { checkPrivilege } = require('../helpers/jwtHelperFunctions')
 
 // Get all customers with pagination
 const getAllCustomers = async (req, res) => {
     try {
+        checkPrivilege(req, res, ['Admin']);
+
         const limit = parseInt(req.query.limit) || 100;
         const offset = parseInt(req.query.offset) || 0;
 
@@ -17,6 +20,8 @@ const getAllCustomers = async (req, res) => {
 // Get single customer by name
 const getCustomerByName = async (req, res) => {
     try {
+        checkPrivilege(req, res, ['Admin']);
+
         const searchCustomer = req.query.name;
         const [customer] = await pool.query("SELECT * FROM Customers WHERE name = ?", [searchCustomer]);
         if (customer.length === 0) return res.status(404).json({ error: "Customer not found" });
@@ -30,6 +35,8 @@ const getCustomerByName = async (req, res) => {
 // Create new customer
 const createCustomer = async (req, res) => {
     try {
+        checkPrivilege(req, res, ['Admin']);
+
         const { name, contact_number1, contact_number2, email, address, township, region } = req.body;
         const [result] = await pool.query(
             "INSERT INTO Customers (name, contact_number1, contact_number2, email, address, township, region) VALUES (?, ?, ?, ?, ?, ?, ?)",
@@ -45,6 +52,8 @@ const createCustomer = async (req, res) => {
 // Update customer
 const updateCustomer = async (req, res) => {
     try {
+        checkPrivilege(req, res, ['Admin']);
+
         const { customer_id, name, contact_number1, contact_number2, email, address, township, region } = req.body;
         const [result] = await pool.query(
             "UPDATE Customers SET name = ?, contact_number1 = ?, contact_number2 = ?, email = ?, address = ?, township = ?, region = ? WHERE customer_id = ?",
@@ -61,6 +70,8 @@ const updateCustomer = async (req, res) => {
 // Delete customer
 const deleteCustomer = async (req, res) => {
     try {
+        checkPrivilege(req, res, ['Admin']);
+
         const { customer_id } = req.body;
         const [result] = await pool.query("DELETE FROM Customers WHERE customer_id = ?", [customer_id]);
         if (result.affectedRows === 0) return res.status(404).json({ error: "Customer not found" });
