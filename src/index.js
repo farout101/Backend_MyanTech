@@ -24,6 +24,7 @@ const userRoutes = require('./routes/user');
 const customerRoutes = require('./routes/customers');
 const deliveryRoutes = require('./routes/deliveries');
 const orderRoutes = require('./routes/orders');
+const returnRoutes = require('./routes/return')
 
 app.use("/auth", authRoutes)
 // app.use(AuthMiddleware);
@@ -32,6 +33,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/customers", customerRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/deliveries", deliveryRoutes);
+app.use("/api/return", returnRoutes)
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
