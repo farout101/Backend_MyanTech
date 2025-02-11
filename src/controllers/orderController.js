@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const { checkPrivilege } = require("../helpers/jwtHelperFunctions");
 
 // Get all orders with pagination
-const getAllOrders = async (req, res) => {
+const getAllOrdersforSale = async (req, res) => {
 
     //checkPrivilege(req, res, ['Warehouse', 'Sale']);
 
@@ -23,6 +23,47 @@ const getAllOrders = async (req, res) => {
             FROM Orders O
             LEFT JOIN Invoices I ON O.order_id = I.order_id
             JOIN Customers C ON O.customer_id = C.customer_id
+            ORDER BY O.order_date DESC
+            LIMIT ? OFFSET ?
+        `, [limit, offset]);
+
+        res.json(orders);
+    } catch (error) {
+        console.error("Error fetching orders:", error);
+        res.status(500).json({ error: "Database query failed" });
+    }
+};
+
+const getAllOrdersforWarehouse = async (req, res) => {
+    //checkPrivilege(req, res, ['Warehouse', 'Sale']);
+
+    try {
+        const limit = parseInt(req.query.limit) || 100;
+        const offset = parseInt(req.query.offset) || 0;
+
+        const [orders] = await pool.query(`
+            SELECT 
+                O.order_date,
+                I.invoice_id,
+                C.name AS customer_name,
+                C.township,
+                C.region,
+                C.address,
+                C.contact_number1 AS phone,
+                D.driver_name,
+                D.driver_id,
+                OI.order_id,
+                P.name AS product_name,
+                OI.quantity,
+                OI.unit_price_at_time AS unit_price,
+                OI.status AS order_item_status
+            FROM Orders O
+            LEFT JOIN Invoices I ON O.order_id = I.order_id
+            JOIN Customers C ON O.customer_id = C.customer_id
+            JOIN OrderItems OI ON O.order_id = OI.order_id
+            JOIN products P ON OI.product_id = P.product_id
+            LEFT JOIN Deliveries DL ON O.delivery_id = DL.delivery_id
+            LEFT JOIN Drivers D ON DL.driver_id = D.driver_id
             ORDER BY O.order_date DESC
             LIMIT ? OFFSET ?
         `, [limit, offset]);
@@ -276,12 +317,13 @@ const viewPendingOrders = async (req, res) => {
 
 
 module.exports = {
-    getAllOrders,
     getOrder,
     updateOrder,
     deleteOrder,
     addProductToOrder,
     getYearlyBreakup,
     getMonthlyEarnings,
-    getCurrentYearBreakup
+    getCurrentYearBreakup,
+    getAllOrdersforSale,
+    getAllOrdersforWarehouse
 };
