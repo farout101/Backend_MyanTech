@@ -13,7 +13,7 @@ Before you begin, ensure you have the following installed on your machine:
 
 1. **Clone the repository**:
     ```sh
-    git clone https://github.com/your-repo/api.git
+    git clone https://github.com/farout101/Backend_MyanTech/api.git
     cd api
     ```
 
