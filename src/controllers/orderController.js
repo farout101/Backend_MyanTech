@@ -145,19 +145,32 @@ const getAllOrdersforWarehouse = async (req, res) => {
     }
 };
 
-// Get a single order
+
 const getOrder = async (req, res) => {
     try {
         checkPrivilege(req, res, ['Admin','Warehouse', 'Sale']);
 
-        const [order] = await pool.query(`
+        // Fetch order details
+        const [orderResults] = await pool.query(`
             SELECT 
                 O.order_id,
                 O.order_date,
                 O.status AS order_status,
                 O.total_amount,
                 C.customer_id,
-                C.name AS customer_name,
+                C.name AS customer_name
+            FROM Orders O
+            JOIN Customers C ON O.customer_id = C.customer_id
+            WHERE O.order_id = ?
+        `, [req.params.id]);
+
+        if (orderResults.length === 0) return res.status(404).json({ error: "Order not found" });
+
+        const order = orderResults[0];
+
+        // Fetch order items separately
+        const [orderItems] = await pool.query(`
+            SELECT 
                 OI.order_item_id,
                 OI.product_id,
                 P.name AS product_name,
@@ -166,26 +179,56 @@ const getOrder = async (req, res) => {
                 P.price AS current_price,
                 OI.unit_price_at_time AS price_at_order,
                 OI.quantity,
-                OI.status AS order_item_status,
+                OI.status AS order_item_status
+            FROM OrderItems OI
+            JOIN products P ON OI.product_id = P.product_id
+            WHERE OI.order_id = ?
+        `, [req.params.id]);
+
+        // Add type to order items
+        const orderItemsWithType = orderItems.map(item => ({
+            ...item,
+            type: 'OrderItem'
+        }));
+
+        // Fetch returns with product details from OrderItems
+        const [returns] = await pool.query(`
+            SELECT 
                 R.return_id,
+                R.order_item_id,
                 R.return_reason,
                 R.return_status,
                 R.return_date,
-                R.resolved_date
-            FROM OrderItems OI
-            JOIN Orders O ON OI.order_id = O.order_id
-            JOIN Customers C ON O.customer_id = C.customer_id
+                R.resolved_date,
+                OI.product_id,
+                P.name AS product_name,
+                P.category,
+                P.brand,
+                R.quantity
+            FROM Returns R
+            JOIN OrderItems OI ON R.order_item_id = OI.order_item_id
             JOIN products P ON OI.product_id = P.product_id
-            LEFT JOIN Returns R ON OI.order_item_id = R.order_item_id
-            WHERE O.order_id = ?
+            WHERE OI.order_id = ?
         `, [req.params.id]);
-        if (order.length === 0) return res.status(404).json({ error: "Order not found" });
-        res.json(order);
+
+        // Add type to returns
+        const returnsWithType = returns.map(ret => ({
+            ...ret,
+            type: 'Return'
+        }));
+
+        // Combine order items and returns
+        const combinedResults = [...orderItemsWithType, ...returnsWithType];
+
+        res.json({ order, details: combinedResults });
+
     } catch (error) {
         console.error("Error fetching order:", error);
         res.status(500).json({ error: "Database query failed" });
     }
 };
+
+
 
 // Update order
 const updateOrder = async (req, res) => {
