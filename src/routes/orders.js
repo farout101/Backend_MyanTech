@@ -8,7 +8,8 @@ const {
     getMonthlyEarnings,
     getCurrentYearBreakup,
     getAllOrdersforWarehouse,
-    getAllOrdersforSale
+    getAllOrdersforSale,
+    viewPendingOrders
 } = require("../controllers/orderController");
 
 const router = express.Router();
@@ -19,6 +20,8 @@ router.get("/monthly-earnings/:year", getMonthlyEarnings) // FIX
 
 router.get("/warehouse", getAllOrdersforWarehouse); // GET /api/orders/warehouse?limit=100&offset=0
 router.get("/sale", getAllOrdersforSale); // GET /api/orders/sale?limit=100&offset=0
+
+router.get("/pendings", viewPendingOrders)
 
 router.get("/:id", getOrder);
 router.put("/:id", updateOrder);

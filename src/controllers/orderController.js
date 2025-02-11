@@ -325,5 +325,6 @@ module.exports = {
     getMonthlyEarnings,
     getCurrentYearBreakup,
     getAllOrdersforSale,
-    getAllOrdersforWarehouse
+    getAllOrdersforWarehouse,
+    viewPendingOrders
 };
