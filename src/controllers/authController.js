@@ -38,6 +38,13 @@ const login = (req, res) => {
     authenticateUser(email, password, res);
 };
 
+// New logout function
+const logout = (req, res) => {
+    res.clearCookie('jwt', { httpOnly: true, secure: process.env.NODE_ENV === 'production' });
+    return res.json({ message: 'Logout successful' });
+};
+
 module.exports = {
-    login
+    login,
+    logout
 };
