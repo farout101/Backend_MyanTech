@@ -1,8 +1,11 @@
 const pool = require("../../config/db");
+const { checkPrivilege } = require('../helpers/jwtHelperFunctions')
 
 // Get all products with pagination
 const getAllProducts = async (req, res) => {
     try {
+        checkPrivilege(req, res, ['Admin','Warehouse','Sale']);
+
         const limit = parseInt(req.query.limit) || 100;
         const offset = parseInt(req.query.offset) || 0;
 
@@ -18,6 +21,8 @@ const getAllProducts = async (req, res) => {
 // Get a single product
 const getProduct = async (req, res) => {
     try {
+        checkPrivilege(req, res, ['Admin','Warehouse','Sale']);
+
         const [product] = await pool.query("SELECT * FROM products WHERE product_id = ?", [req.params.id]);
         if (product.length === 0) return res.status(404).json({ error: "Product not found" });
         res.json(product[0]);
@@ -30,6 +35,8 @@ const getProduct = async (req, res) => {
 // Add new product
 const addProduct = async (req, res) => {
     try {
+        checkPrivilege(req, res, ['Admin','Warehouse','Sale']);
+
         const { name, category, brand, price, serial_number, stock_quantity, product_segment } = req.body;
         const [result] = await pool.query(
             "INSERT INTO products (name, category, brand, price, serial_number, stock_quantity, product_segment) VALUES (?, ?, ?, ?, ?, ?, ?)",
@@ -45,6 +52,8 @@ const addProduct = async (req, res) => {
 // Update product
 const updateProduct = async (req, res) => {
     try {
+        checkPrivilege(req, res, ['Admin','Warehouse','Sale']);
+
         const { name, category, brand, price, serial_number, stock_quantity, product_segment } = req.body;
         const [result] = await pool.query(
             "UPDATE products SET name=?, category=?, brand=?, price=?, serial_number=?, stock_quantity=?, product_segment=? WHERE product_id=?",
@@ -61,6 +70,8 @@ const updateProduct = async (req, res) => {
 // Delete product
 const deleteProduct = async (req, res) => {
     try {
+        checkPrivilege(req, res, ['Admin','Warehouse','Sale']);
+
         const [result] = await pool.query("DELETE FROM products WHERE product_id = ?", [req.params.id]);
         if (result.affectedRows === 0) return res.status(404).json({ error: "Product not found" });
         res.json({ message: "Product deleted" });
@@ -73,6 +84,8 @@ const deleteProduct = async (req, res) => {
 // Search products
 const searchProducts = async (req, res) => {
     try {
+        checkPrivilege(req, res, ['Admin','Warehouse','Sale']);
+
         const searchText = req.query.q;
         const [products] = await pool.query(
             "SELECT * FROM products WHERE name LIKE ? OR category LIKE ? OR brand LIKE ?",
@@ -87,6 +100,8 @@ const searchProducts = async (req, res) => {
 
 const getAllBrands = async (req, res) => {
     try {
+        checkPrivilege(req, res, ['Admin','Warehouse','Sale']);
+
         const [brands] = await pool.query("SELECT DISTINCT brand FROM products ORDER BY brand ASC");
         res.json(brands);
     } catch (error) {

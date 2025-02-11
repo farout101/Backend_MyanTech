@@ -3,7 +3,6 @@ const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
 const pool = require("../../config/db");
 
-
 const authenticateUser = async (email, password, res) => {
     try {
         const [users] = await pool.query("SELECT * FROM users WHERE email = ?", [email]);
@@ -21,10 +20,10 @@ const authenticateUser = async (email, password, res) => {
         const token = jwt.sign({ _id: user.id, dept_name: user.dept_name }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
         res.cookie('jwt', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production' });
-        res.json({ message: 'Login successful' });
+        return res.json({ message: 'Login successful' });
     } catch (error) {
         console.error("Error during authentication:", error);
-        res.status(500).json({ error: "Database query failed" });
+        return res.status(500).json({ error: "Database query failed" });
     }
 };
 

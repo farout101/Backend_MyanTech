@@ -1,4 +1,5 @@
 const pool = require("../../config/db");
+const { checkPrivilege } = require('../helpers/jwtHelperFunctions')
 
 // Get all deliveries
 const getAllDeliveries = async (req, res) => {
@@ -6,6 +7,8 @@ const getAllDeliveries = async (req, res) => {
     const offset = parseInt(req.query.offset) || 0;
 
     try {
+        checkPrivilege(req, res, ['Admin','Warehouse','Sale']);
+
         const [deliveries] = await pool.query("SELECT * FROM Deliveries LIMIT ? OFFSET ?", [limit, offset]);
         res.json(deliveries);
     } catch (error) {
@@ -17,6 +20,8 @@ const getAllDeliveries = async (req, res) => {
 // Get single delivery by ID
 const getDeliveryById = async (req, res) => {
     try {
+        checkPrivilege(req, res, ['Admin','Warehouse','Sale']);
+
         const { id } = req.params;
         const [delivery] = await pool.query("SELECT * FROM Deliveries WHERE delivery_id = ?", [id]);
         if (delivery.length === 0) return res.status(404).json({ error: "Delivery not found" });
@@ -30,6 +35,8 @@ const getDeliveryById = async (req, res) => {
 // Create new delivery
 const createDelivery = async (req, res) => {
     try {
+        checkPrivilege(req, res, ['Admin','Warehouse']);
+
         const { driver_id, truck_id, departure_time } = req.body;
 
         if (!departure_time) {
@@ -54,6 +61,8 @@ const createDelivery = async (req, res) => {
 // Update delivery
 const updateDelivery = async (req, res) => {
     try {
+        checkPrivilege(req, res, ['Admin','Warehouse']);
+
         const { id } = req.params;
         const { driver_id, truck_id, departure_time, status } = req.body;
         const [result] = await pool.query(
@@ -71,6 +80,8 @@ const updateDelivery = async (req, res) => {
 // Delete delivery
 const deleteDelivery = async (req, res) => {
     try {
+        checkPrivilege(req, res, ['Admin','Warehouse']);
+
         const { id } = req.params;
         const [result] = await pool.query("DELETE FROM Deliveries WHERE delivery_id = ?", [id]);
         if (result.affectedRows === 0) return res.status(404).json({ error: "Delivery not found" });
@@ -90,6 +101,8 @@ const isValidStatus = (status) => {
 // Update delivery status
 const updateDeliveryStatus = async (req, res) => {
     try {
+        checkPrivilege(req, res, ['Admin','Warehouse','Sale']);
+
         const { id } = req.params;
         const { status } = req.body;
 

@@ -4,7 +4,7 @@ const { checkPrivilege } = require("../helpers/jwtHelperFunctions");
 
 // Get all orders with pagination
 // const getAllOrdersforSale = async (req, res) => {
-//     //checkPrivilege(req, res, ['Warehouse', 'Sale']);
+//     checkPrivilege(req, res, ['Warehouse', 'Sale']);
 
 //     try {
 //         const limit = parseInt(req.query.limit) || 100;
@@ -36,9 +36,9 @@ const { checkPrivilege } = require("../helpers/jwtHelperFunctions");
 // };
 
 const getAllOrdersforSale = async (req, res) => {
-    //checkPrivilege(req, res, ['Warehouse', 'Sale']);
-
     try {
+        checkPrivilege(req, res, ['Admin','Warehouse', 'Sale']);
+
         const limit = parseInt(req.query.limit) || 100;
         const offset = parseInt(req.query.offset) || 0;
 
@@ -105,9 +105,9 @@ const getAllOrdersforSale = async (req, res) => {
 };
 
 const getAllOrdersforWarehouse = async (req, res) => {
-    //checkPrivilege(req, res, ['Warehouse', 'Sale']);
-
     try {
+        checkPrivilege(req, res, ['Admin','Warehouse', 'Sale']);
+
         const limit = parseInt(req.query.limit) || 100;
         const offset = parseInt(req.query.offset) || 0;
 
@@ -148,6 +148,8 @@ const getAllOrdersforWarehouse = async (req, res) => {
 // Get a single order
 const getOrder = async (req, res) => {
     try {
+        checkPrivilege(req, res, ['Admin','Warehouse', 'Sale']);
+
         const [order] = await pool.query(`
             SELECT 
                 O.order_id,
@@ -189,9 +191,10 @@ const getOrder = async (req, res) => {
 const updateOrder = async (req, res) => {
 
     //Commend out this line if you dont want to use login
-    //checkPrivilege(req, res, ['Warehouse', 'Sale']);
 
     try {
+        checkPrivilege(req, res, ['Admin','Warehouse', 'Sale']);
+
         const { status } = req.body;
         const [result] = await pool.query(
             "UPDATE Orders SET status=? WHERE order_id=?",
@@ -208,6 +211,8 @@ const updateOrder = async (req, res) => {
 // Delete order
 const deleteOrder = async (req, res) => {
     try {
+        checkPrivilege(req, res, ['Admin','Warehouse', 'Sale']);
+
         const [result] = await pool.query("DELETE FROM Orders WHERE order_id = ?", [req.params.id]);
         if (result.affectedRows === 0) return res.status(404).json({ error: "Order not found" });
         res.json({ message: "Order deleted" });
@@ -287,6 +292,9 @@ const deleteOrder = async (req, res) => {
 // };
 
 const addProductToOrder = async (req, res) => {
+
+    checkPrivilege(req, res, ['Admin','Warehouse', 'Sale']);
+
     console.log("went into order controller");
     let { customer_id, order_date, products } = req.body;
 
@@ -372,6 +380,8 @@ const addProductToOrder = async (req, res) => {
 // all years's breakup
 const getYearlyBreakup = async (req, res) => {
     try {
+        checkPrivilege(req, res, ['Admin','Warehouse','Sale']);
+
         const currentYear = new Date().getFullYear();
         const [yearlyBreakup] = await pool.query(`
             SELECT 
@@ -394,6 +404,8 @@ const getYearlyBreakup = async (req, res) => {
 //current year's breakup
 const getCurrentYearBreakup = async (req, res) => {
     try {
+        checkPrivilege(req, res, ['Admin','Warehouse','Sale']);
+
         const [yearlyBreakup] = await pool.query(`
             SELECT 
                 YEAR(order_date) AS year,
@@ -414,6 +426,8 @@ const getCurrentYearBreakup = async (req, res) => {
 
 //monthly earnings
 const getMonthlyEarnings = async (req, res) => {
+    checkPrivilege(req, res, ['Admin','Warehouse','Sale']);
+
     const { year } = req.params;
     try {
         const [monthlyEarnings] = await pool.query(`
@@ -440,6 +454,8 @@ const getMonthlyEarnings = async (req, res) => {
 // View pending orders with pagination
 const viewPendingOrders = async (req, res) => {
     try {
+        checkPrivilege(req, res, ['Admin','Warehouse','Sale']);
+
         const limit = parseInt(req.query.limit) || 100;
         const offset = parseInt(req.query.offset) || 0;
 
