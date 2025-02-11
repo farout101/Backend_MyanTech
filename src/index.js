@@ -25,12 +25,13 @@ const customerRoutes = require('./routes/customers');
 const deliveryRoutes = require('./routes/deliveries');
 const orderRoutes = require('./routes/orders');
 const returnRoutes = require('./routes/return');
-const loginLimiter = require('./middlewares/LimitterMiddleware');
+const { loginLimiter, defaultLimiter } = require('./middlewares/LimitterMiddleware');
 const truckRoutes = require('./routes/trucks');
 const driverRoutes = require('./routes/drivers');
 
 app.use("/auth", loginLimiter, authRoutes)
 // app.use(AuthMiddleware);
+app.use(defaultLimiter)
 app.use("/api/products", productRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/customers", customerRoutes);
