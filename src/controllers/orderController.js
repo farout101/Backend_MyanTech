@@ -67,6 +67,7 @@ const getAllOrdersforSale = async (req, res) => {
             SELECT 
                 OI.order_id,
                 OI.product_id,
+                OI.order_item_id,
                 P.name AS product_name,
                 OI.quantity,
                 OI.unit_price_at_time
@@ -84,6 +85,7 @@ const getAllOrdersforSale = async (req, res) => {
                 product_id: item.product_id,
                 product_name: item.product_name,
                 quantity: item.quantity,
+                order_item_id: item.order_item_id,
                 unit_price_at_time: item.unit_price_at_time
             });
             return acc;
