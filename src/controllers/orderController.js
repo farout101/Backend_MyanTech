@@ -3,23 +3,57 @@ const jwt = require('jsonwebtoken');
 const { checkPrivilege } = require("../helpers/jwtHelperFunctions");
 
 // Get all orders with pagination
-const getAllOrdersforSale = async (req, res) => {
+// const getAllOrdersforSale = async (req, res) => {
+//     //checkPrivilege(req, res, ['Warehouse', 'Sale']);
 
+//     try {
+//         const limit = parseInt(req.query.limit) || 100;
+//         const offset = parseInt(req.query.offset) || 0;
+
+//         const [orders] = await pool.query(`
+//             SELECT 
+//                 O.order_date,
+//                 I.invoice_id,
+//                 C.name AS customer_name,
+//                 O.status AS status,
+//                 I.status AS finance_status,
+//                 O.order_id,
+//                 (SELECT SUM(OI.quantity * OI.unit_price_at_time) 
+//                  FROM OrderItems OI 
+//                  WHERE OI.order_id = O.order_id) AS total_amount
+//             FROM Orders O
+//             LEFT JOIN Invoices I ON O.order_id = I.order_id
+//             JOIN Customers C ON O.customer_id = C.customer_id
+//             ORDER BY O.order_date DESC
+//             LIMIT ? OFFSET ?
+//         `, [limit, offset]);
+
+//         res.json(orders);
+//     } catch (error) {
+//         console.error("Error fetching orders:", error);
+//         res.status(500).json({ error: "Database query failed" });
+//     }
+// };
+
+const getAllOrdersforSale = async (req, res) => {
     //checkPrivilege(req, res, ['Warehouse', 'Sale']);
 
     try {
         const limit = parseInt(req.query.limit) || 100;
         const offset = parseInt(req.query.offset) || 0;
 
+        // Fetch orders
         const [orders] = await pool.query(`
             SELECT 
+                O.order_id,
                 O.order_date,
                 I.invoice_id,
                 C.name AS customer_name,
                 O.status AS status,
                 I.status AS finance_status,
-                O.order_id,
-                I.total_amount AS amount
+                (SELECT SUM(OI.quantity * OI.unit_price_at_time) 
+                 FROM OrderItems OI 
+                 WHERE OI.order_id = O.order_id) AS total_amount
             FROM Orders O
             LEFT JOIN Invoices I ON O.order_id = I.order_id
             JOIN Customers C ON O.customer_id = C.customer_id
@@ -27,7 +61,41 @@ const getAllOrdersforSale = async (req, res) => {
             LIMIT ? OFFSET ?
         `, [limit, offset]);
 
-        res.json(orders);
+        // Fetch products for each order
+        const orderIds = orders.map(order => order.order_id);
+        const [orderItems] = await pool.query(`
+            SELECT 
+                OI.order_id,
+                OI.product_id,
+                P.name AS product_name,
+                OI.quantity,
+                OI.unit_price_at_time
+            FROM OrderItems OI
+            JOIN products P ON OI.product_id = P.product_id
+            WHERE OI.order_id IN (?)
+        `, [orderIds]);
+
+        // Group products by order_id
+        const productsByOrderId = orderItems.reduce((acc, item) => {
+            if (!acc[item.order_id]) {
+                acc[item.order_id] = [];
+            }
+            acc[item.order_id].push({
+                product_id: item.product_id,
+                product_name: item.product_name,
+                quantity: item.quantity,
+                unit_price_at_time: item.unit_price_at_time
+            });
+            return acc;
+        }, {});
+
+        // Attach products to orders
+        const ordersWithProducts = orders.map(order => ({
+            ...order,
+            products: productsByOrderId[order.order_id] || []
+        }));
+
+        res.json(ordersWithProducts);
     } catch (error) {
         console.error("Error fetching orders:", error);
         res.status(500).json({ error: "Database query failed" });
