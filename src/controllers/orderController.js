@@ -38,7 +38,7 @@ const { checkPrivilege } = require("../helpers/jwtHelperFunctions");
 //Get all order for sale view
 const getAllOrdersforSale = async (req, res) => {
     try {
-        checkPrivilege(req, res, ['Admin','Warehouse', 'Sale']);
+        checkPrivilege(req, res, ['Admin', 'Warehouse', 'Sale']);
 
         const limit = parseInt(req.query.limit) || 100;
         const offset = parseInt(req.query.offset) || 0;
@@ -108,7 +108,7 @@ const getAllOrdersforSale = async (req, res) => {
 //Get All Orders for Warehouse View
 const getAllOrdersforWarehouse = async (req, res) => {
     try {
-        checkPrivilege(req, res, ['Admin','Warehouse', 'Sale']);
+        checkPrivilege(req, res, ['Admin', 'Warehouse', 'Sale']);
 
         const limit = parseInt(req.query.limit) || 100;
         const offset = parseInt(req.query.offset) || 0;
@@ -117,6 +117,9 @@ const getAllOrdersforWarehouse = async (req, res) => {
             SELECT 
                 O.order_date,
                 I.invoice_id,
+                I.invoice_date,
+                I.total_amount as invoice_total,
+                I.status AS invoice_status,
                 C.name AS customer_name,
                 C.township,
                 C.region,
@@ -136,6 +139,7 @@ const getAllOrdersforWarehouse = async (req, res) => {
             JOIN products P ON OI.product_id = P.product_id
             LEFT JOIN Deliveries DL ON O.delivery_id = DL.delivery_id
             LEFT JOIN Drivers D ON DL.driver_id = D.driver_id
+            WHERE O.status = 'pending' AND I.invoice_id IS NOT NULL
             ORDER BY O.order_date DESC
             LIMIT ? OFFSET ?
         `, [limit, offset]);
@@ -158,16 +162,21 @@ const getOrder = async (req, res) => {
                 O.order_id,
                 O.order_date,
                 O.status AS order_status,
-                O.total_amount,
+                O.total_amount AS order_total,
                 C.customer_id,
                 C.name AS customer_name,
                 C.contact_number1,
                 C.contact_number2,
                 C.address,
                 C.township,
-                C.region
+                C.region,
+                I.invoice_id,
+                I.invoice_date,
+                I.total_amount AS invoice_total,
+                I.status AS invoice_status
             FROM Orders O
             JOIN Customers C ON O.customer_id = C.customer_id
+            LEFT JOIN Invoices I ON O.order_id = I.order_id  -- Use LEFT JOIN to include orders without invoices
             WHERE O.order_id = ?
         `, [req.params.id]);
 
@@ -243,7 +252,7 @@ const updateOrder = async (req, res) => {
     //Commend out this line if you dont want to use login
 
     try {
-        checkPrivilege(req, res, ['Admin','Warehouse']);
+        checkPrivilege(req, res, ['Admin', 'Warehouse']);
 
         const { status } = req.body;
         const [result] = await pool.query(
@@ -261,7 +270,7 @@ const updateOrder = async (req, res) => {
 // Delete order
 const deleteOrder = async (req, res) => {
     try {
-        checkPrivilege(req, res, ['Admin','Warehouse', 'Sale']);
+        checkPrivilege(req, res, ['Admin', 'Warehouse', 'Sale']);
 
         const [result] = await pool.query("DELETE FROM Orders WHERE order_id = ?", [req.params.id]);
         if (result.affectedRows === 0) return res.status(404).json({ error: "Order not found" });
@@ -344,7 +353,7 @@ const deleteOrder = async (req, res) => {
 // Add products to order and order_items
 const addProductToOrder = async (req, res) => {
 
-    checkPrivilege(req, res, ['Admin','Warehouse', 'Sale']);
+    checkPrivilege(req, res, ['Admin', 'Warehouse', 'Sale']);
 
     console.log("went into order controller");
     let { customer_id, order_date, products } = req.body;
@@ -431,7 +440,7 @@ const addProductToOrder = async (req, res) => {
 // all years's breakup
 const getYearlyBreakup = async (req, res) => {
     try {
-        checkPrivilege(req, res, ['Admin','Warehouse','Sale']);
+        checkPrivilege(req, res, ['Admin', 'Warehouse', 'Sale']);
 
         const currentYear = new Date().getFullYear();
         const [yearlyBreakup] = await pool.query(`
@@ -455,7 +464,7 @@ const getYearlyBreakup = async (req, res) => {
 //current year's breakup
 const getCurrentYearBreakup = async (req, res) => {
     try {
-        checkPrivilege(req, res, ['Admin','Warehouse','Sale']);
+        checkPrivilege(req, res, ['Admin', 'Warehouse', 'Sale']);
 
         const [yearlyBreakup] = await pool.query(`
             SELECT 
@@ -477,7 +486,7 @@ const getCurrentYearBreakup = async (req, res) => {
 
 //monthly earnings
 const getMonthlyEarnings = async (req, res) => {
-    checkPrivilege(req, res, ['Admin','Warehouse','Sale']);
+    checkPrivilege(req, res, ['Admin', 'Warehouse', 'Sale']);
 
     const { year } = req.params;
     try {
@@ -505,7 +514,7 @@ const getMonthlyEarnings = async (req, res) => {
 // View pending orders with pagination
 const viewPendingOrders = async (req, res) => {
     try {
-        checkPrivilege(req, res, ['Admin','Warehouse','Sale']);
+        checkPrivilege(req, res, ['Admin', 'Warehouse', 'Sale']);
 
         const limit = parseInt(req.query.limit) || 100;
         const offset = parseInt(req.query.offset) || 0;

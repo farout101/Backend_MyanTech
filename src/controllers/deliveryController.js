@@ -170,27 +170,66 @@ const isValidStatus = (status) => {
     return validStatuses.includes(status);
 };
 
-// Update delivery status
+// Update delivery status to complete delivery
+// Complete delivery
 const updateDeliveryStatus = async (req, res) => {
+    const connection = await pool.getConnection();
     try {
-        checkPrivilege(req, res, ['Admin','Warehouse','Sale']);
+        await connection.beginTransaction();
 
-        const { id } = req.params;
-        const { status } = req.body;
+        checkPrivilege(req, res, ['Admin', 'Warehouse']);
 
-        if (!isValidStatus(status)) {
-            return res.status(400).json({ error: "Invalid status" });
+        const { delivery_id } = req.params;
+
+        console.log(delivery_id);
+        // Update delivery status to 'delivered'
+        const [deliveryUpdate] = await connection.query(
+            "UPDATE Deliveries SET status = 'delivered' WHERE delivery_id = ?",
+            [delivery_id]
+        );
+
+        await connection.query(
+            "UPDATE Orders SET status = 'delivered' WHERE delivery_id = ?",
+            [delivery_id]
+        );
+
+        if (deliveryUpdate.affectedRows === 0) {
+            return res.status(404).json({ error: "Delivery not found" });
         }
 
-        const [result] = await pool.query(
-            "UPDATE Deliveries SET status=? WHERE delivery_id=?",
-            [status, id]
+        // Get driver_id and truck_id from the delivery
+        const [delivery] = await connection.query(
+            "SELECT driver_id, truck_id FROM Deliveries WHERE delivery_id = ?",
+            [delivery_id]
         );
-        if (result.affectedRows === 0) return res.status(404).json({ error: "Delivery not found" });
-        res.json({ message: "Delivery status updated" });
+
+        const { driver_id, truck_id } = delivery[0];
+
+        // Update driver status to 'available'
+        const [driverUpdate] = await connection.query(
+            "UPDATE Drivers SET status = 'available' WHERE driver_id = ?",
+            [driver_id]
+        );
+
+        // Update truck status to 'available'
+        const [truckUpdate] = await connection.query(
+            "UPDATE Trucks SET status = 'available' WHERE truck_id = ?",
+            [truck_id]
+        );
+
+        if (driverUpdate.affectedRows === 0 || truckUpdate.affectedRows === 0) {
+            throw new Error("Driver or truck status update failed.");
+        }
+
+        await connection.commit();
+        res.status(200).json({ message: "Delivery completed successfully" });
+
     } catch (error) {
-        console.error("Error updating delivery status:", error);
-        res.status(500).json({ error: "Database update failed" });
+        await connection.rollback();
+        console.error("Error completing delivery:", error);
+        res.status(500).json({ message: "Internal Server Error" });
+    } finally {
+        connection.release();
     }
 };
 
