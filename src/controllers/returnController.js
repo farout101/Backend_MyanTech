@@ -115,15 +115,15 @@ const assignServiceCenter = async (req, res) => {
     try {
         checkPrivilege(req, res, ['Admin', 'Warehouse']);
 
-        const { return_id, service_center_id } = req.body;
+        const { return_id, service_center_id, driver_id, truck_id } = req.body;
 
-        if (!return_id || !service_center_id) {
+        if (!return_id || !service_center_id || !driver_id || !truck_id) {
             return res.status(400).json({ error: "Invalid input" });
         }
 
         // Check if the return exists and meets the criteria
         const [returnItem] = await connection.query(
-            "SELECT * FROM Returns WHERE return_id = ? AND return_reason = 'damage' AND return_status = 'picked_up'",
+            "SELECT * FROM Returns WHERE return_id = ? AND return_reason = 'damage'",
             [return_id]
         );
 
@@ -131,14 +131,45 @@ const assignServiceCenter = async (req, res) => {
             return res.status(404).json({ error: "Return not found or does not meet the criteria" });
         }
 
-        // Assign the return to the service center
+        // Check if the driver exists and is available
+        const [driver] = await connection.query(
+            "SELECT * FROM Drivers WHERE driver_id = ? AND status = 'available'",
+            [driver_id]
+        );
+
+        if (driver.length === 0) {
+            return res.status(400).json({ error: "Driver not available" });
+        }
+
+        // Check if the truck exists and is available
+        const [truck] = await connection.query(
+            "SELECT * FROM Trucks WHERE truck_id = ? AND status = 'available'",
+            [truck_id]
+        );
+
+        if (truck.length === 0) {
+            return res.status(400).json({ error: "Truck not available" });
+        }
+
+        // Assign the return to the service center, driver, and truck and update the return status to 'service'
         await connection.query(
-            "UPDATE Returns SET service_center_id = ? WHERE return_id = ?",
-            [service_center_id, return_id]
+            "UPDATE Returns SET service_center_id = ?, driver_id = ?, pickup_truck_id = ?, return_status = 'service' WHERE return_id = ?",
+            [service_center_id, driver_id, truck_id, return_id]
+        );
+
+        // Update the status of the driver and truck to 'working'
+        await connection.query(
+            "UPDATE Drivers SET status = 'working' WHERE driver_id = ?",
+            [driver_id]
+        );
+
+        await connection.query(
+            "UPDATE Trucks SET status = 'working' WHERE truck_id = ?",
+            [truck_id]
         );
 
         await connection.commit();
-        res.json({ message: "Return assigned to service center" });
+        res.json({ message: "Return assigned to service center and status updated to service" });
     } catch (error) {
         await connection.rollback();
         console.error("Error assigning return to service center:", error);
@@ -148,9 +179,212 @@ const assignServiceCenter = async (req, res) => {
     }
 };
 
+// Assign transportation
+const assignTransportation = async (req, res) => {
+    const connection = await pool.getConnection();
+    try {
+        checkPrivilege(req, res, ['Admin', 'Warehouse']);
+
+        const { return_id, driver_id, truck_id } = req.body;
+
+        if (!return_id || !driver_id || !truck_id) {
+            return res.status(400).json({ error: "Invalid input" });
+        }
+
+        // Check if the return exists
+        const [returnItem] = await connection.query(
+            "SELECT * FROM Returns WHERE return_id = ?",
+            [return_id]
+        );
+
+        if (returnItem.length === 0) {
+            return res.status(404).json({ error: "Return not found" });
+        }
+
+        // Check if the driver exists and is available
+        const [driver] = await connection.query(
+            "SELECT * FROM Drivers WHERE driver_id = ? AND status = 'available'",
+            [driver_id]
+        );
+
+        if (driver.length === 0) {
+            return res.status(400).json({ error: "Driver not available" });
+        }
+
+        // Check if the truck exists and is available
+        const [truck] = await connection.query(
+            "SELECT * FROM Trucks WHERE truck_id = ? AND status = 'available'",
+            [truck_id]
+        );
+
+        if (truck.length === 0) {
+            return res.status(400).json({ error: "Truck not available" });
+        }
+
+        // Assign the return to the driver and truck and update the return status to 'picked_up'
+        await connection.query(
+            "UPDATE Returns SET driver_id = ?, pickup_truck_id = ?, return_status = 'picked_up' WHERE return_id = ?",
+            [driver_id, truck_id, return_id]
+        );
+
+        // Update the status of the driver and truck to 'working'
+        await connection.query(
+            "UPDATE Drivers SET status = 'working' WHERE driver_id = ?",
+            [driver_id]
+        );
+
+        await connection.query(
+            "UPDATE Trucks SET status = 'working' WHERE truck_id = ?",
+            [truck_id]
+        );
+
+        await connection.commit();
+        res.json({ message: "Transportation assigned to return and status updated to picked_up" });
+    } catch (error) {
+        await connection.rollback();
+        console.error("Error assigning transportation to return:", error);
+        res.status(500).json({ error: "Database update failed" });
+    } finally {
+        connection.release();
+    }
+};
+
+// Free driver and update status
+const freeDriverAndUpdateStatus = async (req, res) => {
+    const connection = await pool.getConnection();
+    try {
+        checkPrivilege(req, res, ['Admin', 'Warehouse']);
+
+        const { return_id } = req.body;
+
+        if (!return_id) {
+            return res.status(400).json({ error: "Invalid input" });
+        }
+
+        // Check if the return exists
+        const [returnItem] = await connection.query(
+            "SELECT * FROM Returns WHERE return_id = ?",
+            [return_id]
+        );
+
+        if (returnItem.length === 0) {
+            return res.status(404).json({ error: "Return not found" });
+        }
+
+        const { driver_id, pickup_truck_id, return_reason, order_item_id, quantity } = returnItem[0];
+
+        // Free the driver and truck
+        if (driver_id) {
+            await connection.query(
+                "UPDATE Drivers SET status = 'available' WHERE driver_id = ?",
+                [driver_id]
+            );
+        }
+
+        if (pickup_truck_id) {
+            await connection.query(
+                "UPDATE Trucks SET status = 'available' WHERE truck_id = ?",
+                [pickup_truck_id]
+            );
+        }
+
+        // Update the return status to 'collected' and set driver_id and pickup_truck_id to NULL
+        await connection.query(
+            "UPDATE Returns SET return_status = 'collected', driver_id = NULL, pickup_truck_id = NULL WHERE return_id = ?",
+            [return_id]
+        );
+
+        // If the return reason is 'wrong_item', update the OrderItems and products tables
+        if (return_reason === 'wrong_item') {
+            const [orderItem] = await connection.query(
+                "SELECT product_id, quantity FROM OrderItems WHERE order_item_id = ?",
+                [order_item_id]
+            );
+
+            if (orderItem.length > 0) {
+                const { product_id, quantity: orderQuantity } = orderItem[0];
+
+                // Update the stock quantity in the products table
+                await connection.query(
+                    "UPDATE products SET stock_quantity = stock_quantity + ? WHERE product_id = ?",
+                    [orderQuantity, product_id]
+                );
+            }
+        }
+
+        await connection.commit();
+        res.json({ message: "Driver and truck freed, return status updated to collected" });
+    } catch (error) {
+        await connection.rollback();
+        console.error("Error freeing driver and updating status:", error);
+        res.status(500).json({ error: "Database update failed" });
+    } finally {
+        connection.release();
+    }
+};
+
+// Resolve return
+const returnResolve = async (req, res) => {
+    const connection = await pool.getConnection();
+    try {
+        checkPrivilege(req, res, ['Admin', 'Warehouse']);
+
+        const { return_id } = req.body;
+
+        if (!return_id) {
+            return res.status(400).json({ error: "Invalid input" });
+        }
+
+        // Check if the return exists
+        const [returnItem] = await connection.query(
+            "SELECT * FROM Returns WHERE return_id = ?",
+            [return_id]
+        );
+
+        if (returnItem.length === 0) {
+            return res.status(404).json({ error: "Return not found" });
+        }
+
+        const { driver_id, pickup_truck_id } = returnItem[0];
+
+        // Free the driver and truck
+        if (driver_id) {
+            await connection.query(
+                "UPDATE Drivers SET status = 'available' WHERE driver_id = ?",
+                [driver_id]
+            );
+        }
+
+        if (pickup_truck_id) {
+            await connection.query(
+                "UPDATE Trucks SET status = 'available' WHERE truck_id = ?",
+                [pickup_truck_id]
+            );
+        }
+
+        // Update the return status to 'resolved', set driver_id and pickup_truck_id to NULL, and set resolved_date to current date and time
+        await connection.query(
+            "UPDATE Returns SET return_status = 'resolved', driver_id = NULL, pickup_truck_id = NULL, resolved_date = NOW() WHERE return_id = ?",
+            [return_id]
+        );
+
+        await connection.commit();
+        res.json({ message: "Return resolved, driver and truck freed" });
+    } catch (error) {
+        await connection.rollback();
+        console.error("Error resolving return:", error);
+        res.status(500).json({ error: "Database update failed" });
+    } finally {
+        connection.release();
+    }
+};
+
 module.exports = {
     createReturn,
     getAllItemsInServiceCenter,
-    assignServiceCenter
+    assignServiceCenter,
+    assignTransportation,
+    freeDriverAndUpdateStatus,
+    returnResolve
 };
   

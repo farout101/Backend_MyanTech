@@ -6,7 +6,6 @@ const {
     updateDriver,
     deleteDriver,
     getAvailableDrivers,
-    getAvailableDriversTanglement
 } = require("../controllers/driverController");
 
 const router = express.Router();
@@ -17,6 +16,5 @@ router.post("/", createDriver); // POST /api/drivers
 router.put("/", updateDriver); // PUT /api/drivers
 router.delete("/", deleteDriver); // DELETE /api/drivers
 router.get("/", getAvailableDrivers)
-router.get("/", getAvailableDriversTanglement)
 
 module.exports = router;
