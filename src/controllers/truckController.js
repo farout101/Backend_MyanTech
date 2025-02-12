@@ -4,7 +4,7 @@ const { checkPrivilege } = require('../helpers/jwtHelperFunctions');
 // Get all trucks with pagination
 const getAllTrucks = async (req, res) => {
     try {
-        checkPrivilege(req, res, ['Admin']);
+        checkPrivilege(req, res, ['Admin','Warehouse']);
 
         const limit = parseInt(req.query.limit) || 100;
         const offset = parseInt(req.query.offset) || 0;
@@ -18,10 +18,23 @@ const getAllTrucks = async (req, res) => {
     }
 };
 
+// Get available trucks
+const getAvailableTrucks = async (req, res) => {
+    try {
+        checkPrivilege(req, res, ['Admin','Warehouse']);
+
+        const [trucks] = await pool.query("SELECT * FROM Trucks WHERE status = 'available'");
+        res.json(trucks);
+    } catch (error) {
+        console.error("Error fetching available trucks:", error);
+        res.status(500).json({ error: "Database query failed" });
+    }
+};
+
 // Get single truck by license plate
 const getTruckByLicensePlate = async (req, res) => {
     try {
-        checkPrivilege(req, res, ['Admin']);
+        checkPrivilege(req, res, ['Admin','Warehouse']);
 
         const searchLicensePlate = req.query.license_plate;
         const [truck] = await pool.query("SELECT * FROM Trucks WHERE license_plate = ?", [searchLicensePlate]);
@@ -36,7 +49,7 @@ const getTruckByLicensePlate = async (req, res) => {
 // Create new truck
 const createTruck = async (req, res) => {
     try {
-        checkPrivilege(req, res, ['Admin']);
+        checkPrivilege(req, res, ['Admin','Warehouse']);
 
         const { license_plate } = req.body;
         const [result] = await pool.query(
@@ -53,7 +66,7 @@ const createTruck = async (req, res) => {
 // Update truck
 const updateTruck = async (req, res) => {
     try {
-        checkPrivilege(req, res, ['Admin']);
+        checkPrivilege(req, res, ['Admin','Warehouse']);
 
         const { truck_id, license_plate } = req.body;
         const [result] = await pool.query(
@@ -71,7 +84,7 @@ const updateTruck = async (req, res) => {
 // Delete truck
 const deleteTruck = async (req, res) => {
     try {
-        checkPrivilege(req, res, ['Admin']);
+        checkPrivilege(req, res, ['Admin','Warehouse']);
 
         const { truck_id } = req.body;
         const [result] = await pool.query("DELETE FROM Trucks WHERE truck_id = ?", [truck_id]);
@@ -89,4 +102,5 @@ module.exports = {
     createTruck,
     updateTruck,
     deleteTruck,
+    getAvailableTrucks
 };
