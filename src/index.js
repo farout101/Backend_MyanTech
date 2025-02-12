@@ -4,10 +4,12 @@ const pool = require('../config/db');
 const mysql = require('mysql2/promise');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
+const bodyParser = require('body-parser')
 
 const app = express();
 const PORT = process.env.PORT || 4000;
 
+app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(express.json());
 app.use(cors());
