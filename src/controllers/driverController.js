@@ -18,18 +18,18 @@ const getAllDrivers = async (req, res) => {
     }
 };
 
-// Get available drivers
-const getAvailableDrivers = async (req, res) => {
-    try {
-        checkPrivilege(req, res, ['Admin','Warehouse']);
+// // Get available drivers
+// const getAvailableDrivers = async (req, res) => {
+//     try {
+//         checkPrivilege(req, res, ['Admin','Warehouse']);
 
-        const [drivers] = await pool.query("SELECT * FROM Drivers WHERE status = 'available'");
-        res.json(drivers);
-    } catch (error) {
-        console.error("Error fetching available drivers:", error);
-        res.status(500).json({ error: "Database query failed" });
-    }
-};
+//         const [drivers] = await pool.query("SELECT * FROM Drivers WHERE status = 'available'");
+//         res.json(drivers);
+//     } catch (error) {
+//         console.error("Error fetching available drivers:", error);
+//         res.status(500).json({ error: "Database query failed" });
+//     }
+// };
 
 // Get single driver by name
 const getDriverByName = async (req, res) => {
@@ -121,6 +121,6 @@ module.exports = {
     createDriver,
     updateDriver,
     deleteDriver,
-    getAvailableDrivers,
+    // getAvailableDrivers,
     getAvailableDriversTanglement
-};
+}; 
