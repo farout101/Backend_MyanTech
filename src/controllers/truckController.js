@@ -88,5 +88,5 @@ module.exports = {
     getTruckByLicensePlate,
     createTruck,
     updateTruck,
-    deleteTruck
+    deleteTruck,
 };
