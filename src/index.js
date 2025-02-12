@@ -30,6 +30,7 @@ const returnRoutes = require('./routes/return');
 const { loginLimiter, defaultLimiter } = require('./middlewares/LimitterMiddleware');
 const truckRoutes = require('./routes/trucks');
 const driverRoutes = require('./routes/drivers');
+const invoiceRoutes = require('./routes/invoice');
 
 app.use("/auth", loginLimiter, authRoutes)
 // app.use(AuthMiddleware);
@@ -42,6 +43,7 @@ app.use("/api/deliveries", deliveryRoutes);
 app.use("/api/returns", returnRoutes);
 app.use("/api/trucks", truckRoutes);
 app.use("/api/drivers", driverRoutes);
+app.use("/api/invoices", invoiceRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
