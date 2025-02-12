@@ -117,6 +117,9 @@ const getAllOrdersforWarehouse = async (req, res) => {
             SELECT 
                 O.order_date,
                 I.invoice_id,
+                I.invoice_date,
+                I.total_amount as invoice_total,
+                I.status AS invoice_status,
                 C.name AS customer_name,
                 C.township,
                 C.region,
@@ -136,6 +139,7 @@ const getAllOrdersforWarehouse = async (req, res) => {
             JOIN products P ON OI.product_id = P.product_id
             LEFT JOIN Deliveries DL ON O.delivery_id = DL.delivery_id
             LEFT JOIN Drivers D ON DL.driver_id = D.driver_id
+            WHERE O.status = 'pending' AND I.invoice_id IS NOT NULL
             ORDER BY O.order_date DESC
             LIMIT ? OFFSET ?
         `, [limit, offset]);
