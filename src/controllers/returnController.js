@@ -1,11 +1,6 @@
 const pool = require("../../config/db");
 const { checkPrivilege } = require('../helpers/jwtHelperFunctions')
 
-const getAllReturns = (req,res) => {
-    return res.json({message : "From return route"})
-}
-
-
 //createReturnForm
 const createReturn = async (req, res) => {
     const connection = await pool.getConnection();
@@ -83,9 +78,79 @@ const createReturn = async (req, res) => {
     }
 };
 
+const getAllItemsInServiceCenter = async (req, res) => {
+    const connection = await pool.getConnection();
+    try {
+
+        const [results] = await connection.query(
+            `SELECT 
+                R.return_id,
+                P.name AS product_name,
+                OI.quantity,
+                SC.name AS service_center_name,
+                R.return_status,
+                R.return_date
+            FROM Returns R
+            JOIN OrderItems OI ON R.order_item_id = OI.order_item_id
+            JOIN products P ON OI.product_id = P.product_id
+            LEFT JOIN ServiceCenters SC ON R.service_center_id = SC.service_center_id
+            WHERE R.service_center_id IS NOT NULL 
+            AND R.return_status IN ('pending', 'picked_up');`
+        );
+
+        await connection.commit();
+        res.json(results);
+    } catch (error) {
+        await connection.rollback();
+        console.error("Error fetching items in service centers:", error);
+        res.status(500).json({ error: "Internal server error" });
+    } finally {
+        connection.release();
+    }
+};
+
+// Assign service center
+const assignServiceCenter = async (req, res) => {
+    const connection = await pool.getConnection();
+    try {
+        checkPrivilege(req, res, ['Admin', 'Warehouse']);
+
+        const { return_id, service_center_id } = req.body;
+
+        if (!return_id || !service_center_id) {
+            return res.status(400).json({ error: "Invalid input" });
+        }
+
+        // Check if the return exists and meets the criteria
+        const [returnItem] = await connection.query(
+            "SELECT * FROM Returns WHERE return_id = ? AND return_reason = 'damage' AND return_status = 'picked_up'",
+            [return_id]
+        );
+
+        if (returnItem.length === 0) {
+            return res.status(404).json({ error: "Return not found or does not meet the criteria" });
+        }
+
+        // Assign the return to the service center
+        await connection.query(
+            "UPDATE Returns SET service_center_id = ? WHERE return_id = ?",
+            [service_center_id, return_id]
+        );
+
+        await connection.commit();
+        res.json({ message: "Return assigned to service center" });
+    } catch (error) {
+        await connection.rollback();
+        console.error("Error assigning return to service center:", error);
+        res.status(500).json({ error: "Database update failed" });
+    } finally {
+        connection.release();
+    }
+};
 
 module.exports = {
-    getAllReturns,
-    createReturn
+    createReturn,
+    getAllItemsInServiceCenter,
+    assignServiceCenter
 };
   

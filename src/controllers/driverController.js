@@ -96,11 +96,31 @@ const deleteDriver = async (req, res) => {
     }
 };
 
+// Get available drivers based on delivery status
+const getAvailableDriversTanglement = async (req, res) => {
+    try {
+        checkPrivilege(req, res, ['Admin', 'Warehouse']);
+
+        const [drivers] = await pool.query(`
+            SELECT D.*
+            FROM Drivers D
+            LEFT JOIN Deliveries DL ON D.driver_id = DL.driver_id AND DL.status = 'delivering'
+            WHERE DL.driver_id IS NULL
+        `);
+
+        res.json(drivers);
+    } catch (error) {
+        console.error("Error fetching available drivers based on delivery status:", error);
+        res.status(500).json({ error: "Database query failed" });
+    }
+};
+
 module.exports = {
     getAllDrivers,
     getDriverByName,
     createDriver,
     updateDriver,
     deleteDriver,
-    getAvailableDrivers
+    getAvailableDrivers,
+    getAvailableDriversTanglement
 };
