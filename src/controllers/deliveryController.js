@@ -34,27 +34,66 @@ const getDeliveryById = async (req, res) => {
 
 // Create new delivery
 const createDelivery = async (req, res) => {
+    const connection = await pool.getConnection();
     try {
+        await connection.beginTransaction();
+
         checkPrivilege(req, res, ['Admin','Warehouse']);
 
-        const { driver_id, truck_id, departure_time } = req.body;
+        const { driverId, truckId } = req.query;
+        const { order_ids } = req.body; // Expecting { "order_ids": [1, 2, 3, 4] }
 
-        if (!departure_time) {
-            const [result] = await pool.query(
-                "INSERT INTO Deliveries (driver_id, truck_id) VALUES (?, ?)",
-                [driver_id, truck_id]
-            );
-            res.json({ message: "Delivery added", delivery_id: result.insertId });
-        } else {
-            const [result] = await pool.query(
-                "INSERT INTO Deliveries (driver_id, truck_id, departure_time) VALUES (?, ?, ?)",
-                [driver_id, truck_id, departure_time]
-            );
-            res.json({ message: "Delivery added", delivery_id: result.insertId });
+        const nowDatetime = new Date(); //set current date to datetime in mysql format
+
+        if (!driverId || !truckId) {
+            return res.status(400).json({ message: "Missing driverId or truckId in query params." });
         }
+
+        if (!Array.isArray(order_ids) || order_ids.length === 0) {
+            return res.status(400).json({ message: "Payload must contain an array of order_ids." });
+        }
+
+        // Check if all order_ids are available
+        const [orders] = await connection.query("SELECT order_id FROM Orders WHERE order_id IN (?)", [order_ids]);
+        if (orders.length !== order_ids.length) {
+            return res.status(400).json({ message: "Some order_ids are not available." });
+        }
+
+        // Insert into Deliveries table
+        const [result] = await connection.query(
+            "INSERT INTO Deliveries (driver_id, truck_id, departure_time) VALUES (?, ?, ?)",
+            [driverId, truckId, nowDatetime]
+        );
+
+        const deliveryId = result.insertId;
+
+        // Update status of driver and truck to "working"
+        await connection.query("UPDATE Drivers SET status = 'working' WHERE driver_id = ?", [driverId]);
+        await connection.query("UPDATE Trucks SET status = 'working' WHERE truck_id = ?", [truckId]);
+
+        // Insert order_ids into DeliveryOrders table and update Orders table
+        for (const orderId of order_ids) {
+            await connection.query(
+                "UPDATE Orders SET delivery_id = ?, status = 'delivering' WHERE order_id = ?",
+                [deliveryId, orderId]
+            );
+        }
+
+        await connection.commit();
+        res.status(200).json({
+            message: "Delivery created successfully",
+            deliveryId,
+            driverId,
+            truckId,
+            assignedOrderIds: order_ids
+        });
+
     } catch (error) {
-        console.error("Error adding delivery:", error);
-        res.status(500).json({ error: "Database insert failed" });
+        await connection.rollback();
+        console.error("Error creating delivery:", error);
+        res.status(500).json({ message: "Internal Server Error" });
+    } finally {
+        connection.release();
     }
 };
 
