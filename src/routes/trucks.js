@@ -5,7 +5,7 @@ const {
     createTruck,
     updateTruck,
     deleteTruck,
-    getAvailableTrucks
+    getAvailableTrucksTanglement
 } = require("../controllers/truckController");
 
 const router = express.Router();
@@ -15,6 +15,6 @@ router.get("/all", getAllTrucks); // GET /api/drivers?limit=100&offset=0
 router.post("/", createTruck); // POST /api/drivers
 router.put("/", updateTruck); // PUT /api/drivers
 router.delete("/", deleteTruck); // DELETE /api/drivers
-router.get("/", getAvailableTrucks)
+router.get("/", getAvailableTrucksTanglement)
 
 module.exports = router;

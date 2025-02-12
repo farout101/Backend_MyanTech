@@ -31,6 +31,25 @@ const getAvailableTrucks = async (req, res) => {
     }
 };
 
+// Get available trucks based on delivery status
+const getAvailableTrucksTanglement = async (req, res) => {
+    try {
+        checkPrivilege(req, res, ['Admin', 'Warehouse']);
+
+        const [trucks] = await pool.query(`
+            SELECT T.*
+            FROM Trucks T
+            LEFT JOIN Deliveries D ON T.truck_id = D.truck_id AND D.status = 'delivering'
+            WHERE D.truck_id IS NULL
+        `);
+
+        res.json(trucks);
+    } catch (error) {
+        console.error("Error fetching available trucks based on delivery status:", error);
+        res.status(500).json({ error: "Database query failed" });
+    }
+};
+
 // Get single truck by license plate
 const getTruckByLicensePlate = async (req, res) => {
     try {
@@ -102,5 +121,6 @@ module.exports = {
     createTruck,
     updateTruck,
     deleteTruck,
-    getAvailableTrucks
+    getAvailableTrucks,
+    getAvailableTrucksTanglement
 };
