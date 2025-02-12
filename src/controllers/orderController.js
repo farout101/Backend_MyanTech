@@ -160,7 +160,12 @@ const getOrder = async (req, res) => {
                 O.status AS order_status,
                 O.total_amount,
                 C.customer_id,
-                C.name AS customer_name
+                C.name AS customer_name,
+                C.contact_number1,
+                C.contact_number2,
+                C.address,
+                C.township,
+                C.region
             FROM Orders O
             JOIN Customers C ON O.customer_id = C.customer_id
             WHERE O.order_id = ?
