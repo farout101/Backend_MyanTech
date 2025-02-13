@@ -53,6 +53,21 @@ const getAllReturnsWithJoin = async (req, res) => {
         const [countResult] = await connection.query("SELECT COUNT(*) AS total FROM Returns");
         const total = countResult[0].total;
 
+        const [countService] = await connection.query("select count(return_status) as countService from Returns where return_status = 'service'");
+        const serviceCount = countService[0].countService;
+
+        const [countPending] = await connection.query("select count(return_status) as countPending from Returns where return_status = 'pending'");
+        const pendingCount = countPending[0].countPending;
+
+        const [countPickup] = await connection.query("select count(return_status) as countPickup from Returns where return_status = 'picked_up'");
+        const pickupCount = countPickup[0].countPickup;
+
+        const [countCollected] = await connection.query("select count(return_status) as countCollected from Returns where return_status = 'collected'");
+        const collectedCount = countCollected[0].countCollected;
+
+        const [countResolved] = await connection.query("select count(return_status) as countResolved from Returns where return_status = 'resolved'");
+        const resolvedCount = countResolved[0].countResolved;
+
         // Fetch returns with limit and offset
         const [results] = await connection.query(
             `SELECT 
@@ -76,6 +91,11 @@ const getAllReturnsWithJoin = async (req, res) => {
 
         res.json({
             total,
+            serviceCount,
+            pendingCount,
+            pickupCount,    
+            collectedCount,
+            resolvedCount,
             limit,
             offset,
             results
