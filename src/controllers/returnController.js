@@ -1,6 +1,40 @@
 const pool = require("../../config/db");
 const { checkPrivilege } = require('../helpers/jwtHelperFunctions')
 
+// Get all returns with pagination
+const getAllReturns = async (req, res) => {
+    const connection = await pool.getConnection();
+    try {
+        checkPrivilege(req, res, ['Admin', 'Warehouse', 'Sale']);
+
+        // Get limit and offset from query parameters, default to limit 100 and offset 0
+        const limit = parseInt(req.query.limit) || 100;
+        const offset = parseInt(req.query.offset) || 0;
+
+        // Fetch total count of returns
+        const [countResult] = await connection.query("SELECT COUNT(*) AS total FROM Returns");
+        const total = countResult[0].total;
+
+        // Fetch returns with limit and offset
+        const [results] = await connection.query(
+            "SELECT * FROM Returns LIMIT ? OFFSET ?",
+            [limit, offset]
+        );
+
+        res.json({
+            total,
+            limit,
+            offset,
+            results
+        });
+    } catch (error) {
+        console.error("Error fetching returns:", error);
+        res.status(500).json({ error: "Internal server error" });
+    } finally {
+        connection.release();
+    }
+};
+
 //createReturnForm
 const createReturn = async (req, res) => {
     const connection = await pool.getConnection();
@@ -385,6 +419,7 @@ module.exports = {
     assignServiceCenter,
     assignTransportation,
     freeDriverAndUpdateStatus,
-    returnResolve
+    returnResolve,
+    getAllReturns
 };
   
