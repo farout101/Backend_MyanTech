@@ -37,10 +37,59 @@ const getAllReturns = async (req, res) => {
     }
 };
 
+//getAllRetrun While Joining the table
+const getAllReturnsWithJoin = async (req, res) => {
+
+    checkPrivilege(req, res, ['Admin', 'Warehouse', 'Sale']);
+
+    const connection = await pool.getConnection();
+    try {
+
+        // Get limit and offset from query parameters, default to limit 100 and offset 0
+        const limit = parseInt(req.query.limit) || 100;
+        const offset = parseInt(req.query.offset) || 0;
+
+        // Fetch total count of returns
+        const [countResult] = await connection.query("SELECT COUNT(*) AS total FROM Returns");
+        const total = countResult[0].total;
+
+        // Fetch returns with limit and offset
+        const [results] = await connection.query(
+            `SELECT 
+                C.name AS customer_name,
+                P.name AS product_name,
+                R.return_id,
+                R.quantity AS qty,
+                R.return_reason,
+                R.return_status AS status,
+                OI.order_id,
+                OI.order_item_id
+            FROM Returns R
+            JOIN OrderItems OI ON R.order_item_id = OI.order_item_id
+            JOIN Orders O ON OI.order_id = O.order_id
+            JOIN Customers C ON O.customer_id = C.customer_id
+            JOIN products P ON OI.product_id = P.product_id;`,
+            [limit, offset]
+        );
+
+        res.json({
+            total,
+            limit,
+            offset,
+            results
+        });
+    } catch (error) {
+        console.error("Error fetching returns:", error);
+        res.status(500).json({ error: "Internal server error" });
+    } finally {
+        connection.release();
+    }
+};
+
 //createReturnForm
 const createReturn = async (req, res) => {
 
-    checkPrivilege(req, res, ['Admin','Warehouse','Sale']);
+    checkPrivilege(req, res, ['Admin', 'Warehouse', 'Sale']);
 
     const connection = await pool.getConnection();
     try {
@@ -119,7 +168,7 @@ const createReturn = async (req, res) => {
 const getAllItemsInServiceCenter = async (req, res) => {
 
     checkPrivilege(req, res, ['Admin', 'Warehouse']);
-    
+
     const connection = await pool.getConnection();
     try {
 
@@ -224,9 +273,9 @@ const assignServiceCenter = async (req, res) => {
 
 // Assign transportation
 const assignTransportation = async (req, res) => {
-    
+
     checkPrivilege(req, res, ['Admin', 'Warehouse']);
-    
+
     const connection = await pool.getConnection();
     try {
 
@@ -435,6 +484,6 @@ module.exports = {
     assignTransportation,
     freeDriverAndUpdateStatus,
     returnResolve,
-    getAllReturns
+    getAllReturns,
+    getAllReturnsWithJoin
 };
-  

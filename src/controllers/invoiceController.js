@@ -164,7 +164,38 @@ const changeInvoiceStatus = async (req, res) => {
     }
 };
 
+// Get all invoices
+const getAllInvoices = async (req, res) => {
+    const connection = await pool.getConnection();
+    try {
+        checkPrivilege(req, res, ['Admin', 'Warehouse']);
+
+        const [results] = await connection.query(`
+            SELECT 
+                I.invoice_id AS inv,
+                O.order_id,
+                C.name AS customer_name,
+                C.contact_number1 AS contact_no,
+                I.total_amount AS amount,
+                I.status
+            FROM Invoices I
+            JOIN Orders O ON I.order_id = O.order_id
+            JOIN Customers C ON O.customer_id = C.customer_id
+        `);
+
+        res.json(results);
+
+    } catch (error) {
+        console.error("Error fetching invoices:", error);
+        res.status(500).json({ error: "Database query failed" });
+    } finally {
+        connection.release();
+    }
+};
+
+
 module.exports = {
     changeInvoiceStatus,
-    createInvoice
+    createInvoice,
+    getAllInvoices
 };

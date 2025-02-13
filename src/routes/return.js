@@ -9,7 +9,8 @@ const {
     assignTransportation,
     freeDriverAndUpdateStatus,
     returnResolve,
-    getAllReturns
+    getAllReturns,
+    getAllReturnsWithJoin
 } = require("../controllers/returnController");
 
 // Define your routes here
@@ -18,6 +19,7 @@ router.put('/assign-service', assignServiceCenter)
 router.put('/assign-pickup', assignTransportation)
 router.put('/collect-free', freeDriverAndUpdateStatus)
 router.put('/return-resolve', returnResolve)
+router.get('/joined', getAllReturnsWithJoin)
 router.get('/', getAllReturns)
 router.post('/', createReturn);
 // {
