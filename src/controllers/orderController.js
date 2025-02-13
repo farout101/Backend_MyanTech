@@ -249,11 +249,9 @@ const getOrder = async (req, res) => {
 // Update order status by order_id for warehouse
 const updateOrder = async (req, res) => {
 
-    //Commend out this line if you dont want to use login
+    checkPrivilege(req, res, ['Admin', 'Warehouse']);
 
     try {
-        checkPrivilege(req, res, ['Admin', 'Warehouse']);
-
         const { status } = req.body;
         const [result] = await pool.query(
             "UPDATE Orders SET status=? WHERE order_id=?",

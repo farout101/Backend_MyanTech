@@ -3,9 +3,11 @@ const { checkPrivilege } = require('../helpers/jwtHelperFunctions')
 
 // Get all returns with pagination
 const getAllReturns = async (req, res) => {
+
+    checkPrivilege(req, res, ['Admin', 'Warehouse', 'Sale']);
+
     const connection = await pool.getConnection();
     try {
-        checkPrivilege(req, res, ['Admin', 'Warehouse', 'Sale']);
 
         // Get limit and offset from query parameters, default to limit 100 and offset 0
         const limit = parseInt(req.query.limit) || 100;
@@ -37,9 +39,11 @@ const getAllReturns = async (req, res) => {
 
 //createReturnForm
 const createReturn = async (req, res) => {
+
+    checkPrivilege(req, res, ['Admin','Warehouse','Sale']);
+
     const connection = await pool.getConnection();
     try {
-        checkPrivilege(req, res, ['Admin','Warehouse','Sale']);
 
         await connection.beginTransaction();
 
@@ -113,6 +117,9 @@ const createReturn = async (req, res) => {
 };
 
 const getAllItemsInServiceCenter = async (req, res) => {
+
+    checkPrivilege(req, res, ['Admin', 'Warehouse']);
+    
     const connection = await pool.getConnection();
     try {
 
@@ -145,9 +152,11 @@ const getAllItemsInServiceCenter = async (req, res) => {
 
 // Assign service center
 const assignServiceCenter = async (req, res) => {
+
+    checkPrivilege(req, res, ['Admin', 'Warehouse']);
+
     const connection = await pool.getConnection();
     try {
-        checkPrivilege(req, res, ['Admin', 'Warehouse']);
 
         const { return_id, service_center_id, driver_id, truck_id } = req.body;
 
@@ -215,9 +224,11 @@ const assignServiceCenter = async (req, res) => {
 
 // Assign transportation
 const assignTransportation = async (req, res) => {
+    
+    checkPrivilege(req, res, ['Admin', 'Warehouse']);
+    
     const connection = await pool.getConnection();
     try {
-        checkPrivilege(req, res, ['Admin', 'Warehouse']);
 
         const { return_id, driver_id, truck_id } = req.body;
 
@@ -285,9 +296,11 @@ const assignTransportation = async (req, res) => {
 
 // Free driver and update status
 const freeDriverAndUpdateStatus = async (req, res) => {
+
+    checkPrivilege(req, res, ['Admin', 'Warehouse']);
+
     const connection = await pool.getConnection();
     try {
-        checkPrivilege(req, res, ['Admin', 'Warehouse']);
 
         const { return_id } = req.body;
 
@@ -359,9 +372,11 @@ const freeDriverAndUpdateStatus = async (req, res) => {
 
 // Resolve return
 const returnResolve = async (req, res) => {
+
+    checkPrivilege(req, res, ['Admin', 'Warehouse']);
+
     const connection = await pool.getConnection();
     try {
-        checkPrivilege(req, res, ['Admin', 'Warehouse']);
 
         const { return_id } = req.body;
 
