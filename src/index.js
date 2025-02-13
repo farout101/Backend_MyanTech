@@ -36,7 +36,7 @@ const serviceCenterRoutes = require('./routes/serviceCenter');
 const tacticalNuke = require('./routes/tacticalNuke');
 const sampleRoutes = require('./sample');
 
-app.use(AuthMiddleware);
+//app.use(AuthMiddleware);
 app.get("/", sampleRoutes);
 
 app.use("/api/products", productRoutes);
