@@ -35,7 +35,7 @@ const tacticalNuke = require('./routes/tacticalNuke');
 
 app.use("/auth", loginLimiter, authRoutes)
 // app.use(AuthMiddleware);
-app.use(defaultLimiter)
+//app.use(defaultLimiter)
 app.use("/api/products", productRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/customers", customerRoutes);

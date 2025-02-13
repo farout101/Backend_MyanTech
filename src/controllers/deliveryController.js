@@ -1,5 +1,19 @@
 const pool = require("../../config/db");
 const { checkPrivilege } = require('../helpers/jwtHelperFunctions')
+// get delivery count
+const getDeliveryCount = async (req, res) => {
+    try {
+        checkPrivilege(req, res, ['Admin', 'Warehouse', 'Sale']);
+
+        const [countResult] = await pool.query("SELECT COUNT(*) AS count FROM Deliveries");
+        const count = countResult[0].count;
+
+        res.json({ count });
+    } catch (error) {
+        console.error("Error fetching delivery count:", error);
+        res.status(500).json({ error: "Database query failed" });
+    }
+};
 
 // Get all deliveries
 const getAllDeliveries = async (req, res) => {
@@ -7,12 +21,12 @@ const getAllDeliveries = async (req, res) => {
     const offset = parseInt(req.query.offset) || 0;
 
     try {
-        checkPrivilege(req, res, ['Admin','Warehouse','Sale']);
+        checkPrivilege(req, res, ['Admin', 'Warehouse', 'Sale']);
 
         const [deliveries] = await pool.query(`
             SELECT 
                 D.delivery_id,
-                D.departure_time AS delivery_date,
+                D.departure_time,
                 Dr.driver_id,
                 Dr.driver_name,
                 T.truck_id,
@@ -21,7 +35,7 @@ const getAllDeliveries = async (req, res) => {
                 C.name AS customer_name,
                 C.township,
                 C.region,
-                D.status AS delivery_status
+                D.status
             FROM Deliveries D
             JOIN Drivers Dr ON D.driver_id = Dr.driver_id
             JOIN Trucks T ON D.truck_id = T.truck_id
@@ -39,7 +53,7 @@ const getAllDeliveries = async (req, res) => {
 // Get single delivery by ID
 const getDeliveryById = async (req, res) => {
     try {
-        checkPrivilege(req, res, ['Admin','Warehouse','Sale']);
+        checkPrivilege(req, res, ['Admin', 'Warehouse', 'Sale']);
 
         const { id } = req.params;
         const [delivery] = await pool.query("SELECT * FROM Deliveries WHERE delivery_id = ?", [id]);
@@ -152,7 +166,7 @@ const createDelivery = async (req, res) => {
 // Update delivery
 const updateDelivery = async (req, res) => {
     try {
-        checkPrivilege(req, res, ['Admin','Warehouse']);
+        checkPrivilege(req, res, ['Admin', 'Warehouse']);
 
         const { id } = req.params;
         const { driver_id, truck_id, departure_time, status } = req.body;
@@ -171,7 +185,7 @@ const updateDelivery = async (req, res) => {
 // Delete delivery
 const deleteDelivery = async (req, res) => {
     try {
-        checkPrivilege(req, res, ['Admin','Warehouse']);
+        checkPrivilege(req, res, ['Admin', 'Warehouse']);
 
         const { id } = req.params;
         const [result] = await pool.query("DELETE FROM Deliveries WHERE delivery_id = ?", [id]);
@@ -201,9 +215,9 @@ const updateDeliveryStatus = async (req, res) => {
         const { delivery_id } = req.params;
 
         console.log(delivery_id);
-        // Update delivery status to 'delivered'
+        // Update delivery status to 'completed'
         const [deliveryUpdate] = await connection.query(
-            "UPDATE Deliveries SET status = 'delivered' WHERE delivery_id = ?",
+            "UPDATE Deliveries SET status = 'completed' WHERE delivery_id = ?",
             [delivery_id]
         );
 
@@ -258,5 +272,6 @@ module.exports = {
     createDelivery,
     updateDelivery,
     deleteDelivery,
+    getDeliveryCount,
     updateDeliveryStatus
 };
