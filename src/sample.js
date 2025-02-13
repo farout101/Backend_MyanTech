@@ -1,6 +1,6 @@
 const sampleRoutes = (req, res) => {
     res.json({
-      message: "MyanTech ERP API By <TEAM PIXELS/> is running!",
+      message: "MyanTech ERP API By --TEAM PIXELS-- is running!",
       endpoints: [
         {
           category: "Authentication",
