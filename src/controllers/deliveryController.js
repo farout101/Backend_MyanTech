@@ -9,11 +9,30 @@ const getAllDeliveries = async (req, res) => {
     try {
         checkPrivilege(req, res, ['Admin','Warehouse','Sale']);
 
-        const [deliveries] = await pool.query("SELECT * FROM Deliveries LIMIT ? OFFSET ?", [limit, offset]);
-        res.json(deliveries);
+        const [deliveries] = await pool.query(`
+            SELECT 
+                D.delivery_id,
+                D.departure_time AS delivery_date,
+                Dr.driver_id,
+                Dr.driver_name,
+                T.truck_id,
+                T.license_plate AS truck_license_plate,
+                O.order_id,
+                C.name AS customer_name,
+                C.township,
+                C.region,
+                D.status AS delivery_status
+            FROM Deliveries D
+            JOIN Drivers Dr ON D.driver_id = Dr.driver_id
+            JOIN Trucks T ON D.truck_id = T.truck_id
+            JOIN Orders O ON D.delivery_id = O.delivery_id
+            LEFT JOIN Customers C ON O.customer_id = C.customer_id
+            LIMIT ? OFFSET ?
+        `, [limit, offset]);
+        return res.json(deliveries);
     } catch (error) {
         console.error("Error fetching deliveries:", error);
-        res.status(500).json({ error: "Database query failed" });
+        return res.status(500).json({ error: "Database query failed" });
     }
 };
 
