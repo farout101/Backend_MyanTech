@@ -66,11 +66,13 @@ const getDeliveryById = async (req, res) => {
 };
 
 const createDelivery = async (req, res) => {
+    
+    checkPrivilege(req, res, ['Admin', 'Warehouse']);
+
     const connection = await pool.getConnection();
     try {
         await connection.beginTransaction();
 
-        checkPrivilege(req, res, ['Admin', 'Warehouse']);
 
         const { driverId, truckId } = req.query;
         const { order_ids } = req.body; // Expecting { "order_ids": [1, 2, 3, 4] }

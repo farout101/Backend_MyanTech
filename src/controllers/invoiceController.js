@@ -3,11 +3,14 @@ const { checkPrivilege } = require('../helpers/jwtHelperFunctions');
 
 // Create new invoice
 const createInvoice = async (req, res) => {
+    
+    checkPrivilege(req, res, ['Admin','Warehouse']);
+    
     const connection = await pool.getConnection();
     try {
         await connection.beginTransaction();
 
-        checkPrivilege(req, res, ['Admin','Warehouse']);
+        
 
         const { order_id } = req.params;
 
@@ -126,6 +129,42 @@ const createInvoice = async (req, res) => {
     }
 };
 
+const changeInvoiceStatus = async (req, res) => {
+
+    checkPrivilege(req, res, ['Admin', 'Warehouse']);
+
+    const connection = await pool.getConnection();
+    try {
+        
+
+        await connection.beginTransaction();
+
+        const { invoice_id, status } = req.body;
+
+        // Update invoice status
+        const [result] = await connection.query(
+            "UPDATE Invoices SET status = ? WHERE invoice_id = ?",
+            [status, invoice_id]
+        );
+
+        if (result.affectedRows === 0) {
+            await connection.rollback();
+            return res.status(404).json({ error: "Invoice not found" });
+        }
+
+        await connection.commit();
+        res.json({ invoice_id, status });
+
+    } catch (error) {
+        await connection.rollback();
+        console.error("Error updating invoice status:", error);
+        res.status(500).json({ error: "Database query failed" });
+    } finally {
+        connection.release();
+    }
+};
+
 module.exports = {
+    changeInvoiceStatus,
     createInvoice
 };
