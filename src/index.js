@@ -33,6 +33,7 @@ const truckRoutes = require('./routes/trucks');
 const driverRoutes = require('./routes/drivers');
 const invoiceRoutes = require('./routes/invoice');
 const serviceCenterRoutes = require('./routes/serviceCenter');
+const reportRoutes = require('./routes/reports')
 const tacticalNuke = require('./routes/tacticalNuke');
 const sampleRoutes = require('./sample');
 
@@ -43,12 +44,13 @@ app.use("/api/products", productRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/customers", customerRoutes);
 app.use("/api/orders", orderRoutes);
-app.use("/api/deliveries", deliveryRoutes);
+app.use("/api/deliveri es", deliveryRoutes);
 app.use("/api/returns", returnRoutes);
 app.use("/api/trucks", truckRoutes);
 app.use("/api/drivers", driverRoutes);
 app.use("/api/invoices", invoiceRoutes);
 app.use("/api/serviceCenter", serviceCenterRoutes);
+app.use("/api/report", reportRoutes)
 
 //beware not to use carelessly (use wisely)
 app.use("/tacticalNuke", tacticalNuke);
