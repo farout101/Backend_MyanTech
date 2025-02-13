@@ -24,7 +24,7 @@ Before you begin, ensure you have the following installed on your machine:
 
 3. **Set up the MySQL database**:
     - Create a new MySQL database.
-    - Update the database connection details in [db.js](http://_vscodecontentref_/1):
+    - Update the database connection details in `db.js`:
       ```js
       require('dotenv').config();
       const mysql = require('mysql2/promise');
@@ -43,7 +43,7 @@ Before you begin, ensure you have the following installed on your machine:
       module.exports = pool;
       ```
 
-4. **Create a [.env](http://_vscodecontentref_/2) file** in the root directory and add your database credentials:
+4. **Create a `.env` file** in the root directory and add your database credentials:
     ```env
     DB_HOST=localhost
     DB_USER=your-username
@@ -115,6 +115,27 @@ npm run dev
 - **PUT /api/deliveries/:id**: Update a delivery by ID
 - **PUT /api/deliveries/update/:id**: Update delivery status
 - **DELETE /api/deliveries/:id**: Delete a delivery by ID
+
+### Returns
+- **GET /api/returns**: Get all returns with pagination
+- **POST /api/returns**: Create a new return
+- **PUT /api/returns/assign-service-center**: Assign a service center to a return
+- **PUT /api/returns/assign-transportation**: Assign transportation to a return
+- **PUT /api/returns/free-driver-and-update-status**: Free driver and update return status
+- **PUT /api/returns/resolve**: Resolve a return
+
+### Drivers
+- **GET /api/drivers**: Get all drivers with pagination
+- **GET /api/drivers/available**: Get available drivers
+- **GET /api/drivers/:name**: Get a driver by name
+- **POST /api/drivers**: Create a new driver
+- **PUT /api/drivers/:id**: Update a driver by ID
+- **DELETE /api/drivers/:id**: Delete a driver by ID
+- **GET /api/drivers/available-tanglement**: Get available drivers based on delivery status
+
+## Database Design
+
+![Database Design](./images/database.png)
 
 ## Testing
 
