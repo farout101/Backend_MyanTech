@@ -63,6 +63,8 @@ const getAllReturnsWithJoin = async (req, res) => {
                 R.return_reason,
                 R.return_status AS status,
                 OI.order_id,
+                R.return_date,
+                R.resolved_date,
                 OI.order_item_id
             FROM Returns R
             JOIN OrderItems OI ON R.order_item_id = OI.order_item_id
