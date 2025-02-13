@@ -139,13 +139,13 @@ const changeInvoiceStatus = async (req, res) => {
 
         await connection.beginTransaction();
 
-        const { inv, status } = req.body;
+        const { invoice_id, status } = req.body;
         //invoice_id = inv
 
         // Update invoice status
         const [result] = await connection.query(
             "UPDATE Invoices SET status = ? WHERE invoice_id = ?",
-            [status, inv]
+            [status, invoice_id]
         );
 
         if (result.affectedRows === 0) {
@@ -154,7 +154,7 @@ const changeInvoiceStatus = async (req, res) => {
         }
 
         await connection.commit();
-        res.json({ inv, status });
+        res.json({ invoice_id, status });
 
     } catch (error) {
         await connection.rollback();
