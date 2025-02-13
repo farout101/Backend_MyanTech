@@ -31,11 +31,10 @@ const driverRoutes = require('./routes/drivers');
 const invoiceRoutes = require('./routes/invoice');
 const serviceCenterRoutes = require('./routes/serviceCenter');
 const tacticalNuke = require('./routes/tacticalNuke');
+const sampleRoutes = require('./sample');
 
 // app.use(AuthMiddleware);
-app.get("/", (req, res) => {
-  res.json({ message: "MyanTech ERP API is running!" });
-});
+app.get("/", sampleRoutes);
 
 app.use("/api/products", productRoutes);
 app.use("/api/users", userRoutes);
