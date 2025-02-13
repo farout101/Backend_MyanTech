@@ -3,9 +3,11 @@ const { checkPrivilege } = require('../helpers/jwtHelperFunctions');
 
 // Get all service centers with pagination
 const getAllServiceCenters = async (req, res) => {
+
+    checkPrivilege(req, res, ['Admin', 'Warehouse']);
+
     const connection = await pool.getConnection();
     try {
-        checkPrivilege(req, res, ['Admin', 'Warehouse']);
 
         // Get limit and offset from query parameters, default to limit 100 and offset 0
         const limit = parseInt(req.query.limit) || 100;
