@@ -511,6 +511,18 @@ const getMonthlyEarnings = async (req, res) => {
             ORDER BY YEAR(order_date) DESC, MONTH(order_date) DESC
         `, [year]);
 
+        //use this for calculating monthly earnings with invoices
+            // SELECT 
+            //     YEAR(i.invoice_date) AS year,
+            //     MONTH(i.invoice_date) AS month,
+            //     COUNT(*) AS total_orders,
+            //     SUM(i.total_amount) AS total_amount
+            // FROM Orders o
+            // JOIN Invoices i ON o.order_id = i.order_id
+            // WHERE YEAR(i.invoice_date) = 2025 AND i.status = 'paid'
+            // GROUP BY YEAR(i.invoice_date), MONTH(i.invoice_date)
+            // ORDER BY YEAR(i.invoice_date) DESC, MONTH(i.invoice_date) DESC;
+
         res.json(monthlyEarnings);
     } catch (error) {
         console.error("Error fetching monthly earnings data:", error);
