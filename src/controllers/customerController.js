@@ -14,7 +14,9 @@ const getAllCustomers = async (req, res) => {
         res.json(customers);
     } catch (error) {
         console.error("Error fetching customers:", error);
-        res.status(500).json({ error: "Database query failed" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Database query failed" });
+        }
     }
 };
 // Get single customer by name
@@ -28,7 +30,9 @@ const getCustomerByName = async (req, res) => {
         res.json(customer[0]);
     } catch (error) {
         console.error("Error fetching customer:", error);
-        res.status(500).json({ error: "Database query failed" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Database query failed" });
+        }
     }
 };
 
@@ -45,7 +49,9 @@ const createCustomer = async (req, res) => {
         res.json({ message: "Customer added", customer_id: result.insertId });
     } catch (error) {
         console.error("Error adding customer:", error);
-        res.status(500).json({ error: "Database insert failed" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Database insert failed" });
+        }
     }
 };
 
@@ -63,7 +69,9 @@ const updateCustomer = async (req, res) => {
         res.json({ message: "Customer updated" });
     } catch (error) {
         console.error("Error updating customer:", error);
-        res.status(500).json({ error: "Database update failed" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Database update failed" });
+        }
     }
 };
 
@@ -78,7 +86,9 @@ const deleteCustomer = async (req, res) => {
         res.json({ message: "Customer deleted" });
     } catch (error) {
         console.error("Error deleting customer:", error);
-        res.status(500).json({ error: "Database delete failed" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Database delete failed" });
+        }
     }
 };
 

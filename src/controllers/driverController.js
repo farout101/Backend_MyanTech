@@ -14,7 +14,9 @@ const getAllDrivers = async (req, res) => {
         res.json(drivers);
     } catch (error) {
         console.error("Error fetching drivers:", error);
-        res.status(500).json({ error: "Database query failed" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Database query failed" });
+        }
     }
 };
 
@@ -27,7 +29,9 @@ const getAvailableDrivers = async (req, res) => {
         res.json(drivers);
     } catch (error) {
         console.error("Error fetching available drivers:", error);
-        res.status(500).json({ error: "Database query failed" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Database query failed" });
+        }
     }
 };
 
@@ -42,7 +46,9 @@ const getDriverByName = async (req, res) => {
         res.json(driver[0]);
     } catch (error) {
         console.error("Error fetching driver:", error);
-        res.status(500).json({ error: "Database query failed" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Database query failed" });
+        }
     }
 };
 
@@ -59,7 +65,9 @@ const createDriver = async (req, res) => {
         res.json({ message: "Driver added", driver_id: result.insertId });
     } catch (error) {
         console.error("Error adding driver:", error);
-        res.status(500).json({ error: "Database insert failed" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Database insert failed" });
+        }
     }
 };
 
@@ -77,7 +85,9 @@ const updateDriver = async (req, res) => {
         res.json({ message: "Driver updated" });
     } catch (error) {
         console.error("Error updating driver:", error);
-        res.status(500).json({ error: "Database update failed" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Database update failed" });
+        }
     }
 };
 
@@ -92,7 +102,9 @@ const deleteDriver = async (req, res) => {
         res.json({ message: "Driver deleted" });
     } catch (error) {
         console.error("Error deleting driver:", error);
-        res.status(500).json({ error: "Database delete failed" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Database delete failed" });
+        }
     }
 };
 
@@ -111,7 +123,9 @@ const getAvailableDriversTanglement = async (req, res) => {
         res.json(drivers);
     } catch (error) {
         console.error("Error fetching available drivers based on delivery status:", error);
-        res.status(500).json({ error: "Database query failed" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Database query failed" });
+        }
     }
 };
 

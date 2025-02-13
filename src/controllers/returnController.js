@@ -31,7 +31,9 @@ const getAllReturns = async (req, res) => {
         });
     } catch (error) {
         console.error("Error fetching returns:", error);
-        res.status(500).json({ error: "Internal server error" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Internal Server Error" });
+        }
     } finally {
         connection.release();
     }
@@ -82,7 +84,9 @@ const getAllReturnsWithJoin = async (req, res) => {
         });
     } catch (error) {
         console.error("Error fetching returns:", error);
-        res.status(500).json({ error: "Internal server error" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Internal Server Error" });
+        }
     } finally {
         connection.release();
     }
@@ -161,7 +165,9 @@ const createReturn = async (req, res) => {
     } catch (error) {
         await connection.rollback();
         console.error("Error creating returns:", error);
-        res.status(500).json({ error: "Database insert failed" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Database Insert Failed" });
+        }
     } finally {
         connection.release();
     }
@@ -195,7 +201,9 @@ const getAllItemsInServiceCenter = async (req, res) => {
     } catch (error) {
         await connection.rollback();
         console.error("Error fetching items in service centers:", error);
-        res.status(500).json({ error: "Internal server error" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Internal server error" });
+        }
     } finally {
         connection.release();
     }
@@ -267,7 +275,9 @@ const assignServiceCenter = async (req, res) => {
     } catch (error) {
         await connection.rollback();
         console.error("Error assigning return to service center:", error);
-        res.status(500).json({ error: "Database update failed" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Database Update Failed" });
+        }
     } finally {
         connection.release();
     }
@@ -339,7 +349,9 @@ const assignTransportation = async (req, res) => {
     } catch (error) {
         await connection.rollback();
         console.error("Error assigning transportation to return:", error);
-        res.status(500).json({ error: "Database update failed" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Database Update Failed" });
+        }
     } finally {
         connection.release();
     }
@@ -415,7 +427,9 @@ const freeDriverAndUpdateStatus = async (req, res) => {
     } catch (error) {
         await connection.rollback();
         console.error("Error freeing driver and updating status:", error);
-        res.status(500).json({ error: "Database update failed" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Database update Failed" });
+        };
     } finally {
         connection.release();
     }
@@ -473,7 +487,9 @@ const returnResolve = async (req, res) => {
     } catch (error) {
         await connection.rollback();
         console.error("Error resolving return:", error);
-        res.status(500).json({ error: "Database update failed" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Database Insert Failed" });
+        }
     } finally {
         connection.release();
     }

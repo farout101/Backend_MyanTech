@@ -31,7 +31,9 @@ const getAllServiceCenters = async (req, res) => {
         });
     } catch (error) {
         console.error("Error fetching service centers:", error);
-        res.status(500).json({ error: "Internal server error" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Internal Server Error" });
+        }
     } finally {
         connection.release();
     }

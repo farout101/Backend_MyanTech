@@ -15,7 +15,9 @@ const getAllUsers = async (req, res) => {
         res.json(users);
     } catch (error) {
         console.error("Error fetching users:", error);
-        res.status(500).json({ error: "Database query failed" });
+        if (!res.headersSent) {
+          res.status(500).json({ error: "Database query failed" });
+      };
     }
 };
 
@@ -33,7 +35,9 @@ const getUserByName = async (req, res) => {
     res.json(user[0]);
   } catch (error) {
     console.error("Error fetching user:", error);
-    res.status(500).json({ error: "Database query failed" });
+    if (!res.headersSent) {
+      res.status(500).json({ error: "Database query failed" });
+  };
   }
 };
 
@@ -54,7 +58,9 @@ const createUser = async (req, res) => {
         res.json({ message: "User added", user_id: result.insertId });
     } catch (error) {
         console.error("Error adding user:", error);
-        res.status(500).json({ error: "Database insert failed" });
+        if (!res.headersSent) {
+          res.status(500).json({ error: "Database insert failed" });
+      }
     }
 };
 
@@ -72,7 +78,9 @@ const updateUserById = async (req, res) => {
       res.json({ message: "User updated" });
   } catch (error) {
       console.error("Error updating user:", error);
-      res.status(500).json({ error: "Database update failed" });
+      if (!res.headersSent) {
+        res.status(500).json({ error: "Database update failed" });
+    }
   }
 };
 
