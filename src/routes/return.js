@@ -8,16 +8,18 @@ const {
     assignServiceCenter,
     assignTransportation,
     freeDriverAndUpdateStatus,
-    returnResolve
+    returnResolve,
+    getAllReturns
 } = require("../controllers/returnController");
 
 // Define your routes here
-router.post('/', createReturn);
 router.get('/service', getAllItemsInServiceCenter)
 router.put('/assign-service', assignServiceCenter)
 router.put('/assign-pickup', assignTransportation)
 router.put('/collect-free', freeDriverAndUpdateStatus)
 router.put('/return-resolve', returnResolve)
+router.get('/', getAllReturns)
+router.post('/', createReturn);
 // {
 //     "return_id": 3,
 //     "service_center_id": 2,
