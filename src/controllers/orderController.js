@@ -95,6 +95,7 @@ const getAllOrdersforSale = async (req, res) => {
         // Attach products to orders
         const ordersWithProducts = orders.map(order => ({
             ...order,
+            total_qty: productsByOrderId[order.order_id].reduce((acc, item) => acc + item.quantity, 0),
             products: productsByOrderId[order.order_id] || []
         }));
 
@@ -180,7 +181,7 @@ const getOrder = async (req, res) => {
                 I.status AS invoice_status
             FROM Orders O
             JOIN Customers C ON O.customer_id = C.customer_id
-            LEFT JOIN Invoices I ON O.order_id = I.order_id  -- Use LEFT JOIN to include orders without invoices
+            LEFT JOIN Invoices I ON O.order_id = I.order_id
             WHERE O.order_id = ?
         `, [req.params.id]);
 
