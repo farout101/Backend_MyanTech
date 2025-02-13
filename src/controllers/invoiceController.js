@@ -123,7 +123,9 @@ const createInvoice = async (req, res) => {
     } catch (error) {
         await connection.rollback();
         console.error("Error fetching order:", error);
-        res.status(500).json({ error: "Database query failed" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Database query failed" });
+        }
     } finally {
         connection.release();
     }
@@ -135,11 +137,10 @@ const changeInvoiceStatus = async (req, res) => {
 
     const connection = await pool.getConnection();
     try {
-        
-
         await connection.beginTransaction();
 
         const { invoice_id, status } = req.body;
+        //invoice_id = inv
 
         // Update invoice status
         const [result] = await connection.query(
@@ -158,7 +159,9 @@ const changeInvoiceStatus = async (req, res) => {
     } catch (error) {
         await connection.rollback();
         console.error("Error updating invoice status:", error);
-        res.status(500).json({ error: "Database query failed" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Database query failed" });
+        }
     } finally {
         connection.release();
     }
@@ -176,6 +179,7 @@ const getAllInvoices = async (req, res) => {
                 O.order_id,
                 C.name AS customer_name,
                 C.contact_number1 AS contact_no,
+                I.invoice_date,
                 I.total_amount AS amount,
                 I.status
             FROM Invoices I
@@ -187,7 +191,9 @@ const getAllInvoices = async (req, res) => {
 
     } catch (error) {
         console.error("Error fetching invoices:", error);
-        res.status(500).json({ error: "Database query failed" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Database query failed" });
+        }
     } finally {
         connection.release();
     }

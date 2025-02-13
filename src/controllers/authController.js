@@ -25,7 +25,9 @@ const authenticateUser = async (email, password, res) => {
         return res.json({ message: 'Login successful' });
     } catch (error) {
         console.error("Error during authentication:", error);
-        return res.status(500).json({ error: "Database query failed" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Database query failed" });
+        };
     }
 };
 

@@ -38,7 +38,7 @@ const { checkPrivilege } = require("../helpers/jwtHelperFunctions");
 //Get all order for sale view
 const getAllOrdersforSale = async (req, res) => {
     try {
-        checkPrivilege(req, res, ['Admin', 'Warehouse', 'Sale']);
+        checkPrivilege(req, res, ['Admin', 'Sale']);
 
         const limit = parseInt(req.query.limit) || 100;
         const offset = parseInt(req.query.offset) || 0;
@@ -101,14 +101,16 @@ const getAllOrdersforSale = async (req, res) => {
         res.json(ordersWithProducts);
     } catch (error) {
         console.error("Error fetching orders:", error);
-        res.status(500).json({ error: "Database query failed" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Database query failed" });
+        }
     }
 };
 
 //Get All Orders for Warehouse View
 const getAllOrdersforWarehouse = async (req, res) => {
     try {
-        checkPrivilege(req, res, ['Admin', 'Warehouse', 'Sale']);
+        checkPrivilege(req, res, ['Admin', 'Warehouse']);
 
         const limit = parseInt(req.query.limit) || 100;
         const offset = parseInt(req.query.offset) || 0;
@@ -147,7 +149,9 @@ const getAllOrdersforWarehouse = async (req, res) => {
         res.json(orders);
     } catch (error) {
         console.error("Error fetching orders:", error);
-        res.status(500).json({ error: "Database query failed" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Database query failed" });
+        }
     }
 };
 
@@ -240,7 +244,9 @@ const getOrder = async (req, res) => {
 
     } catch (error) {
         console.error("Error fetching order:", error);
-        res.status(500).json({ error: "Database query failed" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Database query failed" });
+        }
     }
 };
 
@@ -275,7 +281,9 @@ const deleteOrder = async (req, res) => {
         res.json({ message: "Order deleted" });
     } catch (error) {
         console.error("Error deleting order:", error);
-        res.status(500).json({ error: "Database delete failed" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Database delete failed" });
+        }
     }
 };
 
@@ -351,7 +359,7 @@ const deleteOrder = async (req, res) => {
 // Add products to order and order_items
 const addProductToOrder = async (req, res) => {
 
-    checkPrivilege(req, res, ['Admin', 'Warehouse', 'Sale']);
+    checkPrivilege(req, res, ['Admin', 'Sale']);
 
     console.log("went into order controller");
     let { customer_id, order_date, products } = req.body;
@@ -429,7 +437,9 @@ const addProductToOrder = async (req, res) => {
     } catch (error) {
         await connection.rollback();
         console.error("Error adding products to order:", error);
-        res.status(500).json({ error: "Database transaction failed" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Database transaction failed" });
+        }
     } finally {
         connection.release();
     }

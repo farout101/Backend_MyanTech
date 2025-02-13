@@ -14,7 +14,9 @@ const getAllTrucks = async (req, res) => {
         res.json(trucks);
     } catch (error) {
         console.error("Error fetching trucks:", error);
-        res.status(500).json({ error: "Database query failed" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Database query failed" });
+        }
     }
 };
 
@@ -27,7 +29,9 @@ const getAvailableTrucks = async (req, res) => {
         res.json(trucks);
     } catch (error) {
         console.error("Error fetching available trucks:", error);
-        res.status(500).json({ error: "Database query failed" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Database query failed" });
+        }
     }
 };
 
@@ -46,7 +50,9 @@ const getAvailableTrucksTanglement = async (req, res) => {
         res.json(trucks);
     } catch (error) {
         console.error("Error fetching available trucks based on delivery status:", error);
-        res.status(500).json({ error: "Database query failed" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Database query failed" });
+        }
     }
 };
 
@@ -61,7 +67,9 @@ const getTruckByLicensePlate = async (req, res) => {
         res.json(truck[0]);
     } catch (error) {
         console.error("Error fetching truck:", error);
-        res.status(500).json({ error: "Database query failed" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Database query failed" });
+        }
     }
 };
 
@@ -78,7 +86,9 @@ const createTruck = async (req, res) => {
         res.json({ message: "Truck added", truck_id: result.insertId });
     } catch (error) {
         console.error("Error adding truck:", error);
-        res.status(500).json({ error: "Database insert failed" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Database Insert Failed" });
+        }
     }
 };
 
@@ -96,7 +106,9 @@ const updateTruck = async (req, res) => {
         res.json({ message: "Truck updated" });
     } catch (error) {
         console.error("Error updating truck:", error);
-        res.status(500).json({ error: "Database update failed" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Database Update Failed" });
+        }
     }
 };
 
@@ -111,7 +123,9 @@ const deleteTruck = async (req, res) => {
         res.json({ message: "Truck deleted" });
     } catch (error) {
         console.error("Error deleting truck:", error);
-        res.status(500).json({ error: "Database delete failed" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Database Delete Failed" });
+        }
     }
 };
 

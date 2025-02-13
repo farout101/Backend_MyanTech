@@ -20,6 +20,9 @@ app.use(defaultLimiter);
 const productRoutes = require("./routes/products");
 const AuthMiddleware = require('./middlewares/AuthMiddleware');
 const authRoutes = require('./routes/auth');
+
+app.use("/auth", loginLimiter, authRoutes);
+
 const userRoutes = require('./routes/user');
 const customerRoutes = require('./routes/customers');
 const deliveryRoutes = require('./routes/deliveries');
@@ -33,7 +36,7 @@ const serviceCenterRoutes = require('./routes/serviceCenter');
 const tacticalNuke = require('./routes/tacticalNuke');
 const sampleRoutes = require('./sample');
 
-// app.use(AuthMiddleware);
+app.use(AuthMiddleware);
 app.get("/", sampleRoutes);
 
 app.use("/api/products", productRoutes);

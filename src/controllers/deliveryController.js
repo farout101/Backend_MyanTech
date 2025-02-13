@@ -46,7 +46,9 @@ const getAllDeliveries = async (req, res) => {
         return res.json(deliveries);
     } catch (error) {
         console.error("Error fetching deliveries:", error);
-        return res.status(500).json({ error: "Database query failed" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Database query failed" });
+        }
     }
 };
 
@@ -61,7 +63,9 @@ const getDeliveryById = async (req, res) => {
         res.json(delivery[0]);
     } catch (error) {
         console.error("Error fetching delivery:", error);
-        res.status(500).json({ error: "Database query failed" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Database query failed" });
+        }
     }
 };
 
@@ -158,7 +162,9 @@ const createDelivery = async (req, res) => {
             return res.status(400).json({ message: "Invalid driver or truck." });
         }
 
-        res.status(500).json({ message: "Internal Server Error" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Internal Server Error" });
+        }
     } finally {
         connection.release();
     }
@@ -180,7 +186,9 @@ const updateDelivery = async (req, res) => {
         res.json({ message: "Delivery updated" });
     } catch (error) {
         console.error("Error updating delivery:", error);
-        res.status(500).json({ error: "Database update failed" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Database update failed" });
+        }
     }
 };
 
@@ -195,7 +203,9 @@ const deleteDelivery = async (req, res) => {
         res.json({ message: "Delivery deleted" });
     } catch (error) {
         console.error("Error deleting delivery:", error);
-        res.status(500).json({ error: "Database delete failed" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Database delete failed" });
+        }
     }
 };
 
@@ -262,7 +272,9 @@ const updateDeliveryStatus = async (req, res) => {
     } catch (error) {
         await connection.rollback();
         console.error("Error completing delivery:", error);
-        res.status(500).json({ message: "Internal Server Error" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Internal Server Error" });
+        }
     } finally {
         connection.release();
     }
