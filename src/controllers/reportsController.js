@@ -83,7 +83,63 @@ const slowProducts = async (req, res) => {
     }
 };
 
+const showStats = async (req, res) => {
+    const connection = await pool.getConnection();
+    try {
+        checkPrivilege(req, res, ['Admin', 'Warehouse', 'Sale']);
+
+        // Fetch total number of orders
+        const [totalOrdersResult] = await connection.query("SELECT COUNT(*) AS totalOrders FROM Orders");
+        const totalOrders = totalOrdersResult[0].totalOrders;
+
+        // Fetch number of pending orders
+        const [pendingOrdersResult] = await connection.query("SELECT COUNT(*) AS pendingOrders FROM Orders WHERE status = 'pending'");
+        const pendingOrders = pendingOrdersResult[0].pendingOrders;
+
+        // Fetch number of completed deliveries
+        const [deliveriesCompletedResult] = await connection.query("SELECT COUNT(*) AS deliveriesCompleted FROM Deliveries WHERE status = 'completed'");
+        const deliveriesCompleted = deliveriesCompletedResult[0].deliveriesCompleted;
+
+        // Fetch number of return orders
+        const [returnOrdersResult] = await connection.query("SELECT COUNT(*) AS returnOrders FROM Returns");
+        const returnOrders = returnOrdersResult[0].returnOrders;
+
+        // Fetch total number of invoices
+        const [totalInvoicesResult] = await connection.query("SELECT COUNT(*) AS totalInvoices FROM Invoices");
+        const totalInvoices = totalInvoicesResult[0].totalInvoices;
+
+        // Fetch total number of customers
+        const [totalCustomersResult] = await connection.query("SELECT COUNT(*) AS totalCustomers FROM Customers");
+        const totalCustomers = totalCustomersResult[0].totalCustomers;
+
+        // Fetch total revenue from products
+        const [totalRevenueResult] = await connection.query("SELECT SUM(price * stock_quantity) AS totalRevenue FROM products");
+        const totalRevenue = totalRevenueResult[0].totalRevenue;
+
+        // Fetch total number of products
+        const [totalProductsResult] = await connection.query("SELECT COUNT(*) AS totalProducts FROM products");
+        const totalProducts = totalProductsResult[0].totalProducts;
+
+        res.json({
+            totalOrders,
+            pendingOrders,
+            deliveriesCompleted,
+            returnOrders,
+            totalInvoices,
+            totalCustomers,
+            totalRevenue,
+            totalProducts
+        });
+    } catch (error) {
+        console.error("Error fetching statistics:", error);
+        res.status(500).json({ error: "Internal server error" });
+    } finally {
+        connection.release();
+    }
+};
+
 module.exports = {
     mostProfitProducts,
-    slowProducts
+    slowProducts,
+    showStats
 }
