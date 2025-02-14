@@ -89,7 +89,7 @@ const getAllReturnsWithJoin = async (req, res) => {
             LEFT JOIN Orders O ON OI.order_id = O.order_id
             LEFT JOIN Customers C ON O.customer_id = C.customer_id
             LEFT JOIN products P ON OI.product_id = P.product_id
-            ORDER BY R.return_id
+            ORDER BY R.return_id DESC
             LIMIT ? OFFSET ?`,
             [limit, offset]
         );
