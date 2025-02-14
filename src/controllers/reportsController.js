@@ -154,8 +154,15 @@ const showStats = async (req, res) => {
         const totalCustomers = totalCustomersResult[0].totalCustomers;
 
         // Fetch total revenue from products
-        const [totalRevenueResult] = await connection.query("SELECT SUM(price * stock_quantity) AS totalRevenue FROM products");
-        const totalRevenue = totalRevenueResult[0].totalRevenue;
+        const [totalRevenueResult] = await connection.query(`SELECT 
+                YEAR(order_date) AS year,
+                COUNT(*) AS total_orders,
+                SUM(total_amount) AS total_amount
+            FROM Orders
+            WHERE YEAR(order_date) = YEAR(CURDATE())
+            GROUP BY YEAR(order_date)
+            ORDER BY YEAR(order_date) DESC`);
+        const totalRevenue = totalRevenueResult[0].total_amount;   
 
         // Fetch total number of products
         const [totalProductsResult] = await connection.query("SELECT COUNT(*) AS totalProducts FROM products");
