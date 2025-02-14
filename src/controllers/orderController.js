@@ -212,34 +212,8 @@ const getOrder = async (req, res) => {
             type: 'OrderItem'
         }));
 
-        // Fetch returns with product details from OrderItems
-        const [returns] = await pool.query(`
-            SELECT 
-                R.return_id,
-                R.order_item_id,
-                R.return_reason,
-                R.return_status,
-                R.return_date,
-                R.resolved_date,
-                OI.product_id,
-                P.name AS product_name,
-                P.category,
-                P.brand,
-                R.quantity
-            FROM Returns R
-            JOIN OrderItems OI ON R.order_item_id = OI.order_item_id
-            JOIN products P ON OI.product_id = P.product_id
-            WHERE OI.order_id = ?
-        `, [req.params.id]);
-
-        // Add type to returns
-        const returnsWithType = returns.map(ret => ({
-            ...ret,
-            type: 'Return'
-        }));
-
-        // Combine order items and returns
-        const combinedResults = [...orderItemsWithType, ...returnsWithType];
+        // Combine order items and returns (excluding returns)
+        const combinedResults = [...orderItemsWithType];
 
         res.json({ order, details: combinedResults });
 
@@ -250,7 +224,6 @@ const getOrder = async (req, res) => {
         }
     }
 };
-
 
 
 // Update order status by order_id for warehouse
