@@ -41,6 +41,7 @@ const getAllDeliveries = async (req, res) => {
             JOIN Trucks T ON D.truck_id = T.truck_id
             JOIN Orders O ON D.delivery_id = O.delivery_id
             LEFT JOIN Customers C ON O.customer_id = C.customer_id
+            ORDER BY D.departure_time DESC
             LIMIT ? OFFSET ?
         `, [limit, offset]);
         return res.json(deliveries);
