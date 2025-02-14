@@ -182,5 +182,6 @@ const showStats = async (req, res) => {
 module.exports = {
     mostProfitProducts,
     slowProducts,
-    showStats
+    showStats,
+    getLast7DaysSales
 }
