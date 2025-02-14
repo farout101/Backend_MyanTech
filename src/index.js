@@ -37,14 +37,14 @@ const reportRoutes = require('./routes/reports')
 const tacticalNuke = require('./routes/tacticalNuke');
 const sampleRoutes = require('./sample');
 
-app.use(AuthMiddleware);
+//app.use(AuthMiddleware);
 app.get("/", sampleRoutes);
 
 app.use("/api/products", productRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/customers", customerRoutes);
 app.use("/api/orders", orderRoutes);
-app.use("/api/deliveri es", deliveryRoutes);
+app.use("/api/deliveries", deliveryRoutes);
 app.use("/api/returns", returnRoutes);
 app.use("/api/trucks", truckRoutes);
 app.use("/api/drivers", driverRoutes);

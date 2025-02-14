@@ -36,7 +36,9 @@ const mostProfitProducts = async (req, res) => {
         });
     } catch (error) {
         console.error("Error fetching most profit products:", error);
-        res.status(500).json({ error: "Internal server error" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Internal Server Error" });
+        };
     } finally {
         connection.release();
     }
@@ -77,7 +79,46 @@ const slowProducts = async (req, res) => {
         });
     } catch (error) {
         console.error("Error fetching slow products:", error);
-        res.status(500).json({ error: "Internal server error" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Internal Server Error" });
+        };
+    } finally {
+        connection.release();
+    }
+};
+
+
+// Get sales for the last 7 days
+const getLast7DaysSales = async (req, res) => {
+    const connection = await pool.getConnection();
+    try {
+        checkPrivilege(req, res, ['Admin', 'Warehouse', 'Sale']);
+
+        const [results] = await connection.query(`
+            WITH RECURSIVE DateSeries AS (
+                SELECT CURDATE() - INTERVAL 7 DAY AS invoice_date
+                UNION ALL
+                SELECT invoice_date + INTERVAL 1 DAY
+                FROM DateSeries
+                WHERE invoice_date < CURDATE()
+            )
+            SELECT 
+                ds.invoice_date, 
+                COALESCE(SUM(oi.quantity * oi.unit_price_at_time), 0) AS total_sales
+            FROM DateSeries ds
+            LEFT JOIN Invoices i ON DATE(i.invoice_date) = ds.invoice_date AND i.status = 'paid'
+            LEFT JOIN Orders o ON i.order_id = o.order_id
+            LEFT JOIN OrderItems oi ON o.order_id = oi.order_id
+            GROUP BY ds.invoice_date
+            ORDER BY ds.invoice_date ASC;
+        `);
+
+        res.json(results);
+    } catch (error) {
+        console.error("Error fetching sales for the last 7 days:", error);
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Internal Server Error" });
+        };
     } finally {
         connection.release();
     }
