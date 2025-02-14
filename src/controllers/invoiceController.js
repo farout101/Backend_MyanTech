@@ -185,6 +185,7 @@ const getAllInvoices = async (req, res) => {
             FROM Invoices I
             JOIN Orders O ON I.order_id = O.order_id
             JOIN Customers C ON O.customer_id = C.customer_id
+            ORDER BY I.invoice_id DESC
         `);
 
         res.json(results);

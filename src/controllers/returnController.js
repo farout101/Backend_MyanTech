@@ -82,6 +82,7 @@ const getAllReturnsWithJoin = async (req, res) => {
                 R.return_date,
                 R.resolved_date,
                 R.quantity,
+                O.order_id,
                 C.name AS customer_name,
                 P.name AS product_name
             FROM Returns R
