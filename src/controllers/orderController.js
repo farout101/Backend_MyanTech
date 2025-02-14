@@ -38,7 +38,7 @@ const { checkPrivilege } = require("../helpers/jwtHelperFunctions");
 //Get all order for sale view
 const getAllOrdersforSale = async (req, res) => {
     try {
-        checkPrivilege(req, res, ['Admin', 'Warehouse', 'Sale']);
+        checkPrivilege(req, res, ['Admin', 'Sale']);
 
         const limit = parseInt(req.query.limit) || 100;
         const offset = parseInt(req.query.offset) || 0;
@@ -95,20 +95,23 @@ const getAllOrdersforSale = async (req, res) => {
         // Attach products to orders
         const ordersWithProducts = orders.map(order => ({
             ...order,
+            total_qty: productsByOrderId[order.order_id].reduce((acc, item) => acc + item.quantity, 0),
             products: productsByOrderId[order.order_id] || []
         }));
 
         res.json(ordersWithProducts);
     } catch (error) {
         console.error("Error fetching orders:", error);
-        res.status(500).json({ error: "Database query failed" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Database query failed" });
+        }
     }
 };
 
 //Get All Orders for Warehouse View
 const getAllOrdersforWarehouse = async (req, res) => {
     try {
-        checkPrivilege(req, res, ['Admin', 'Warehouse', 'Sale']);
+        checkPrivilege(req, res, ['Admin', 'Warehouse']);
 
         const limit = parseInt(req.query.limit) || 100;
         const offset = parseInt(req.query.offset) || 0;
@@ -147,7 +150,9 @@ const getAllOrdersforWarehouse = async (req, res) => {
         res.json(orders);
     } catch (error) {
         console.error("Error fetching orders:", error);
-        res.status(500).json({ error: "Database query failed" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Database query failed" });
+        }
     }
 };
 
@@ -176,7 +181,7 @@ const getOrder = async (req, res) => {
                 I.status AS invoice_status
             FROM Orders O
             JOIN Customers C ON O.customer_id = C.customer_id
-            LEFT JOIN Invoices I ON O.order_id = I.order_id  -- Use LEFT JOIN to include orders without invoices
+            LEFT JOIN Invoices I ON O.order_id = I.order_id
             WHERE O.order_id = ?
         `, [req.params.id]);
 
@@ -207,43 +212,18 @@ const getOrder = async (req, res) => {
             type: 'OrderItem'
         }));
 
-        // Fetch returns with product details from OrderItems
-        const [returns] = await pool.query(`
-            SELECT 
-                R.return_id,
-                R.order_item_id,
-                R.return_reason,
-                R.return_status,
-                R.return_date,
-                R.resolved_date,
-                OI.product_id,
-                P.name AS product_name,
-                P.category,
-                P.brand,
-                R.quantity
-            FROM Returns R
-            JOIN OrderItems OI ON R.order_item_id = OI.order_item_id
-            JOIN products P ON OI.product_id = P.product_id
-            WHERE OI.order_id = ?
-        `, [req.params.id]);
-
-        // Add type to returns
-        const returnsWithType = returns.map(ret => ({
-            ...ret,
-            type: 'Return'
-        }));
-
-        // Combine order items and returns
-        const combinedResults = [...orderItemsWithType, ...returnsWithType];
+        // Combine order items and returns (excluding returns)
+        const combinedResults = [...orderItemsWithType];
 
         res.json({ order, details: combinedResults });
 
     } catch (error) {
         console.error("Error fetching order:", error);
-        res.status(500).json({ error: "Database query failed" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Database query failed" });
+        }
     }
 };
-
 
 
 // Update order status by order_id for warehouse
@@ -275,7 +255,9 @@ const deleteOrder = async (req, res) => {
         res.json({ message: "Order deleted" });
     } catch (error) {
         console.error("Error deleting order:", error);
-        res.status(500).json({ error: "Database delete failed" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Database delete failed" });
+        }
     }
 };
 
@@ -351,7 +333,7 @@ const deleteOrder = async (req, res) => {
 // Add products to order and order_items
 const addProductToOrder = async (req, res) => {
 
-    checkPrivilege(req, res, ['Admin', 'Warehouse', 'Sale']);
+    checkPrivilege(req, res, ['Admin', 'Sale']);
 
     console.log("went into order controller");
     let { customer_id, order_date, products } = req.body;
@@ -429,7 +411,9 @@ const addProductToOrder = async (req, res) => {
     } catch (error) {
         await connection.rollback();
         console.error("Error adding products to order:", error);
-        res.status(500).json({ error: "Database transaction failed" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Database transaction failed" });
+        }
     } finally {
         connection.release();
     }
@@ -499,6 +483,18 @@ const getMonthlyEarnings = async (req, res) => {
             GROUP BY YEAR(order_date), MONTH(order_date)
             ORDER BY YEAR(order_date) DESC, MONTH(order_date) DESC
         `, [year]);
+
+        //use this for calculating monthly earnings with invoices
+            // SELECT 
+            //     YEAR(i.invoice_date) AS year,
+            //     MONTH(i.invoice_date) AS month,
+            //     COUNT(*) AS total_orders,
+            //     SUM(i.total_amount) AS total_amount
+            // FROM Orders o
+            // JOIN Invoices i ON o.order_id = i.order_id
+            // WHERE YEAR(i.invoice_date) = 2025 AND i.status = 'paid'
+            // GROUP BY YEAR(i.invoice_date), MONTH(i.invoice_date)
+            // ORDER BY YEAR(i.invoice_date) DESC, MONTH(i.invoice_date) DESC;
 
         res.json(monthlyEarnings);
     } catch (error) {

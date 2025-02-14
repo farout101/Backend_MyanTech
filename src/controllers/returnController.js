@@ -31,19 +31,19 @@ const getAllReturns = async (req, res) => {
         });
     } catch (error) {
         console.error("Error fetching returns:", error);
-        res.status(500).json({ error: "Internal server error" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Internal Server Error" });
+        }
     } finally {
         connection.release();
     }
 };
 
-//getAllRetrun While Joining the table
+// Get all returns with pagination and join necessary tables to get customer name and product name
 const getAllReturnsWithJoin = async (req, res) => {
-
-    checkPrivilege(req, res, ['Admin', 'Warehouse', 'Sale']);
-
     const connection = await pool.getConnection();
     try {
+        checkPrivilege(req, res, ['Admin', 'Warehouse', 'Sale']);
 
         // Get limit and offset from query parameters, default to limit 100 and offset 0
         const limit = parseInt(req.query.limit) || 100;
@@ -53,36 +53,63 @@ const getAllReturnsWithJoin = async (req, res) => {
         const [countResult] = await connection.query("SELECT COUNT(*) AS total FROM Returns");
         const total = countResult[0].total;
 
+        const [countService] = await connection.query("SELECT COUNT(return_status) AS countService FROM Returns WHERE return_status = 'service'");
+        const serviceCount = countService[0].countService;
+
+        const [countPending] = await connection.query("SELECT COUNT(return_status) AS countPending FROM Returns WHERE return_status = 'pending'");
+        const pendingCount = countPending[0].countPending;
+
+        const [countPickup] = await connection.query("SELECT COUNT(return_status) AS countPickup FROM Returns WHERE return_status = 'picked_up'");
+        const pickupCount = countPickup[0].countPickup;
+
+        const [countCollected] = await connection.query("SELECT COUNT(return_status) AS countCollected FROM Returns WHERE return_status = 'collected'");
+        const collectedCount = countCollected[0].countCollected;
+
+        const [countResolved] = await connection.query("SELECT COUNT(return_status) AS countResolved FROM Returns WHERE return_status = 'resolved'");
+        const resolvedCount = countResolved[0].countResolved;
+
         // Fetch returns with limit and offset
         const [results] = await connection.query(
             `SELECT 
-                C.name AS customer_name,
-                P.name AS product_name,
                 R.return_id,
-                R.quantity AS qty,
+                R.order_item_id,
                 R.return_reason,
-                R.return_status AS status,
-                OI.order_id,
+                R.pickup_truck_id,
+                R.driver_id,
+                R.service_center_id,
+                R.return_status,
                 R.return_date,
                 R.resolved_date,
-                OI.order_item_id
+                R.quantity,
+                O.order_id,
+                C.name AS customer_name,
+                P.name AS product_name
             FROM Returns R
-            JOIN OrderItems OI ON R.order_item_id = OI.order_item_id
-            JOIN Orders O ON OI.order_id = O.order_id
-            JOIN Customers C ON O.customer_id = C.customer_id
-            JOIN products P ON OI.product_id = P.product_id;`,
+            LEFT JOIN OrderItems OI ON R.order_item_id = OI.order_item_id
+            LEFT JOIN Orders O ON OI.order_id = O.order_id
+            LEFT JOIN Customers C ON O.customer_id = C.customer_id
+            LEFT JOIN products P ON OI.product_id = P.product_id
+            ORDER BY R.return_id DESC
+            LIMIT ? OFFSET ?`,
             [limit, offset]
         );
 
         res.json({
             total,
+            serviceCount,
+            pendingCount,
+            pickupCount,
+            collectedCount,
+            resolvedCount,
             limit,
             offset,
             results
         });
     } catch (error) {
         console.error("Error fetching returns:", error);
-        res.status(500).json({ error: "Internal server error" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Internal Server Error" });
+        }
     } finally {
         connection.release();
     }
@@ -161,7 +188,9 @@ const createReturn = async (req, res) => {
     } catch (error) {
         await connection.rollback();
         console.error("Error creating returns:", error);
-        res.status(500).json({ error: "Database insert failed" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Database Insert Failed" });
+        }
     } finally {
         connection.release();
     }
@@ -195,7 +224,9 @@ const getAllItemsInServiceCenter = async (req, res) => {
     } catch (error) {
         await connection.rollback();
         console.error("Error fetching items in service centers:", error);
-        res.status(500).json({ error: "Internal server error" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Internal server error" });
+        }
     } finally {
         connection.release();
     }
@@ -267,7 +298,9 @@ const assignServiceCenter = async (req, res) => {
     } catch (error) {
         await connection.rollback();
         console.error("Error assigning return to service center:", error);
-        res.status(500).json({ error: "Database update failed" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Database Update Failed" });
+        }
     } finally {
         connection.release();
     }
@@ -339,7 +372,9 @@ const assignTransportation = async (req, res) => {
     } catch (error) {
         await connection.rollback();
         console.error("Error assigning transportation to return:", error);
-        res.status(500).json({ error: "Database update failed" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Database Update Failed" });
+        }
     } finally {
         connection.release();
     }
@@ -415,7 +450,9 @@ const freeDriverAndUpdateStatus = async (req, res) => {
     } catch (error) {
         await connection.rollback();
         console.error("Error freeing driver and updating status:", error);
-        res.status(500).json({ error: "Database update failed" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Database update Failed" });
+        };
     } finally {
         connection.release();
     }
@@ -473,7 +510,9 @@ const returnResolve = async (req, res) => {
     } catch (error) {
         await connection.rollback();
         console.error("Error resolving return:", error);
-        res.status(500).json({ error: "Database update failed" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Database Insert Failed" });
+        }
     } finally {
         connection.release();
     }

@@ -14,7 +14,9 @@ const getAllProducts = async (req, res) => {
         res.json(products);
     } catch (error) {
         console.error("Error fetching products:", error);
-        res.status(500).json({ error: "Database query failed" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Database query failed" });
+        }
     }
 };
 
@@ -28,7 +30,9 @@ const getProduct = async (req, res) => {
         res.json(product[0]);
     } catch (error) {
         console.error("Error fetching product:", error);
-        res.status(500).json({ error: "Database query failed" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Database query failed" });
+        }
     }
 };
 
@@ -45,7 +49,9 @@ const addProduct = async (req, res) => {
         res.json({ message: "Product added", product_id: result.insertId });
     } catch (error) {
         console.error("Error adding product:", error);
-        res.status(500).json({ error: "Database insert failed" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Database query failed" });
+        }
     }
 };
 
@@ -63,7 +69,9 @@ const updateProduct = async (req, res) => {
         res.json({ message: "Product updated" });
     } catch (error) {
         console.error("Error updating product:", error);
-        res.status(500).json({ error: "Database update failed" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Database query failed" });
+        }
     }
 };
 
@@ -94,7 +102,9 @@ const searchProducts = async (req, res) => {
         res.json(products);
     } catch (error) {
         console.error("Error searching products:", error);
-        res.status(500).json({ error: "Database query failed" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Database query failed" });
+        }
     }
 };
 
@@ -106,7 +116,9 @@ const getAllBrands = async (req, res) => {
         res.json(brands);
     } catch (error) {
         console.error("Error fetching brands:", error);
-        res.status(500).json({ error: "Database query failed" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Database query failed" });
+        }
     }
 };
 

@@ -20,6 +20,10 @@ app.use(defaultLimiter);
 const productRoutes = require("./routes/products");
 const AuthMiddleware = require('./middlewares/AuthMiddleware');
 const authRoutes = require('./routes/auth');
+
+//app.use("/auth", loginLimiter, authRoutes);
+app.use("/auth", authRoutes);
+
 const userRoutes = require('./routes/user');
 const customerRoutes = require('./routes/customers');
 const deliveryRoutes = require('./routes/deliveries');
@@ -30,10 +34,11 @@ const truckRoutes = require('./routes/trucks');
 const driverRoutes = require('./routes/drivers');
 const invoiceRoutes = require('./routes/invoice');
 const serviceCenterRoutes = require('./routes/serviceCenter');
+const reportRoutes = require('./routes/reports')
 const tacticalNuke = require('./routes/tacticalNuke');
 const sampleRoutes = require('./sample');
 
-// app.use(AuthMiddleware);
+//app.use(AuthMiddleware);
 app.get("/", sampleRoutes);
 
 app.use("/api/products", productRoutes);
@@ -46,6 +51,7 @@ app.use("/api/trucks", truckRoutes);
 app.use("/api/drivers", driverRoutes);
 app.use("/api/invoices", invoiceRoutes);
 app.use("/api/serviceCenter", serviceCenterRoutes);
+app.use("/api/report", reportRoutes)
 
 //beware not to use carelessly (use wisely)
 app.use("/tacticalNuke", tacticalNuke);

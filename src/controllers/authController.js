@@ -22,10 +22,15 @@ const authenticateUser = async (email, password, res) => {
         const token = jwt.sign({ _id: user.id, dept_name: user.dept_name }, process.env.JWT_SECRET, { expiresIn: '8h' });
 
         res.cookie('jwt', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', maxAge: timer, sameSite: 'Strict'  });
-        return res.json({ message: 'Login successful' });
+        return res.json({ 
+            message: 'Login successful',
+            jwt : token
+         });
     } catch (error) {
         console.error("Error during authentication:", error);
-        return res.status(500).json({ error: "Database query failed" });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Database query failed" });
+        };
     }
 };
 
