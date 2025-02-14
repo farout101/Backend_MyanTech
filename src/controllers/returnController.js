@@ -72,12 +72,13 @@ const getAllReturnsWithJoin = async (req, res) => {
         const [results] = await connection.query(
             `SELECT 
                 R.return_id,
+                O.order_id,
                 R.order_item_id,
                 R.return_reason,
                 R.pickup_truck_id,
                 R.driver_id,
                 R.service_center_id,
-                R.return_status,
+                R.return_status AS status,
                 R.return_date,
                 R.resolved_date,
                 R.quantity,
