@@ -2,7 +2,8 @@ const express = require("express");
 const {
     mostProfitProducts,
     slowProducts,
-    getThisMonthSaleReport
+    getThisMonthSaleReport,
+    showStats
 } = require("../controllers/reportsController");
 const router = express.Router();
 
@@ -10,5 +11,6 @@ const router = express.Router();
 router.get('/profitproduct', mostProfitProducts)
 router.get('/slowproduct', slowProducts)
 router.get('/getThisMonthSaleReport', getThisMonthSaleReport)
+router.get('/stats', showStats)
 
 module.exports = router;
