@@ -21,7 +21,8 @@ const productRoutes = require("./routes/products");
 const AuthMiddleware = require('./middlewares/AuthMiddleware');
 const authRoutes = require('./routes/auth');
 
-app.use("/auth", loginLimiter, authRoutes);
+//app.use("/auth", loginLimiter, authRoutes);
+app.use("/auth", authRoutes);
 
 const userRoutes = require('./routes/user');
 const customerRoutes = require('./routes/customers');
