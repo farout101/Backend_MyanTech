@@ -89,14 +89,14 @@ const slowProducts = async (req, res) => {
 
 
 // Get sales for the last 7 days
-const getLast7DaysSales = async (req, res) => {
+const getThisMonthSaleReport = async (req, res) => {
     const connection = await pool.getConnection();
     try {
         checkPrivilege(req, res, ['Admin', 'Warehouse', 'Sale']);
 
         const [results] = await connection.query(`
             WITH RECURSIVE DateSeries AS (
-                SELECT CURDATE() - INTERVAL 7 DAY AS invoice_date
+                SELECT DATE_FORMAT(CURDATE(), '%Y-%m-01') AS invoice_date
                 UNION ALL
                 SELECT invoice_date + INTERVAL 1 DAY
                 FROM DateSeries
@@ -110,7 +110,7 @@ const getLast7DaysSales = async (req, res) => {
             LEFT JOIN Orders o ON i.order_id = o.order_id
             LEFT JOIN OrderItems oi ON o.order_id = oi.order_id
             GROUP BY ds.invoice_date
-            ORDER BY ds.invoice_date ASC;
+            ORDER BY ds.invoice_date ASC
         `);
 
         res.json(results);
@@ -128,5 +128,5 @@ const getLast7DaysSales = async (req, res) => {
 module.exports = {
     mostProfitProducts,
     slowProducts,
-    getLast7DaysSales
+    getThisMonthSaleReport
 }
