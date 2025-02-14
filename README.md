@@ -73,6 +73,7 @@ npm run dev
 
 ### Authentication
 - **POST /auth/login**: Login a user
+- **POST /auth/logout**: Logout a user
 
 ### Users
 - **GET /api/users**: Get all users with pagination
@@ -113,11 +114,13 @@ npm run dev
 - **GET /api/deliveries/:id**: Get a delivery by ID
 - **POST /api/deliveries**: Create a new delivery
 - **PUT /api/deliveries/:id**: Update a delivery by ID
-- **PUT /api/deliveries/update/:id**: Update delivery status
+- **PUT /api/deliveries/update/:delivery_id**: Update delivery status
 - **DELETE /api/deliveries/:id**: Delete a delivery by ID
+- **GET /api/deliveries/delivery-count**: Get delivery count
 
 ### Returns
 - **GET /api/returns**: Get all returns with pagination
+- **GET /api/returns/joined**: Get all returns with joined tables
 - **POST /api/returns**: Create a new return
 - **PUT /api/returns/assign-service-center**: Assign a service center to a return
 - **PUT /api/returns/assign-transportation**: Assign transportation to a return
@@ -127,11 +130,39 @@ npm run dev
 ### Drivers
 - **GET /api/drivers**: Get all drivers with pagination
 - **GET /api/drivers/available**: Get available drivers
-- **GET /api/drivers/:name**: Get a driver by name
+- **GET /api/drivers/search**: Get a driver by name
 - **POST /api/drivers**: Create a new driver
-- **PUT /api/drivers/:id**: Update a driver by ID
-- **DELETE /api/drivers/:id**: Delete a driver by ID
+- **PUT /api/drivers**: Update a driver
+- **DELETE /api/drivers**: Delete a driver
 - **GET /api/drivers/available-tanglement**: Get available drivers based on delivery status
+
+### Trucks
+- **GET /api/trucks**: Get available trucks
+- **GET /api/trucks/all**: Get all trucks with pagination
+- **GET /api/trucks/search**: Get a truck by license plate
+- **POST /api/trucks**: Create a new truck
+- **PUT /api/trucks**: Update a truck
+- **DELETE /api/trucks**: Delete a truck
+
+### Invoices
+- **GET /api/invoices**: Get all invoices
+- **POST /api/invoices/:order_id**: Create a new invoice
+- **PUT /api/invoices/status**: Change invoice status
+
+### Service Centers
+- **GET /api/serviceCenter**: Get all service centers with pagination
+
+### Reports
+- **GET /api/report/profitproduct**: Get most profitable products
+- **GET /api/report/slowproduct**: Get slow-moving products
+- **GET /api/report/getThisMonthSaleReport**: Get sales for the current month
+- **GET /api/report/stats**: Show statistics
+
+### Tactical Nuke
+- **DELETE /tacticalNuke/tactical/Nuke/incomming/doNotUseCarelessly**: Delete all data and reset statuses
+
+### Sample
+- **GET /**: Sample route showing available endpoints
 
 ## Database Design
 
